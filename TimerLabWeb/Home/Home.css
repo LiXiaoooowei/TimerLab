@@ -1,0 +1,41 @@
+﻿/* Page-specific styling */
+
+body {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    height: 96vh;
+}
+
+#content-main {
+    display: flex;
+    flex-direction: column;
+    width: 60%;
+    height:100%;
+}
+
+#content-tool {
+    border-left-style: solid;
+    border-left-color: lightgray;
+    padding-left: 5%;
+    display: flex;
+    flex-direction: column;
+    width: 40%;
+    height: 100%;
+}
+
+.padding {
+    padding: 2%;
+}
+
+.dropdown {
+    margin-top: 5%;
+}
+
+.dropdown select {
+    padding: 1%;
+    width: 80%;
+}
+select {
+    padding: 1%;
+}
