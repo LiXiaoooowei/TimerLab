@@ -1,6 +1,7 @@
 ﻿(function () {
     "use strict";
     var ClockType = Object.freeze({ "BAR_CLOCK": "bar", "ROUND_CLOCK": "round", "DIGITAL_CLOCK": "digital" });
+    var clockType = ClockType.ROUND_CLOCK;
     var messageBanner;
     var ctx;
     var radius;
@@ -9,7 +10,6 @@
     var startTime = new Date();
     var isTimerStarted = false;
     var isTimeUp = false;
-    var clockType = ClockType.ROUND_CLOCK;
 
     var HH = 0, MM = 0, SS = 20;
     var interval = 5;
@@ -20,6 +20,10 @@
             var element = document.querySelector('.ms-MessageBanner');
             messageBanner = new fabric.MessageBanner(element);
             messageBanner.hideBanner();
+
+            handleActiveFileViewChanged();
+            handleActiveViewChanged();
+
             for (let i = 0; i < 24; i++) {
                 $("#toolbar-HH").append($('<option>', { value: i, text: i < 10 ? "0" + i.toString() : i.toString() }));
             }
@@ -29,22 +33,27 @@
             for (let i = 0; i < 60; i++) {
                 $("#toolbar-SS").append($('<option>', { value: i, text: i < 10 ? "0" + i.toString() : i.toString() }));
             }
+
+            HH = loadSettings('HH') == null ? HH : loadSettings('HH');
+            MM = loadSettings('MM') == null ? MM : loadSettings('MM');
+            SS = loadSettings('SS') == null ? SS : loadSettings('SS');
+            interval = loadSettings('interval') == null ? interval : loadSettings('interval');
+            clockType = loadSettings('clocktype') == null ? clockType : loadSettings('clocktype');
+
             var canvas = document.getElementById("canvas");
             canvasHeight = canvas.height;
             canvasWidth = canvas.width;
             ctx = canvas.getContext("2d");
-            radius = canvas.height / 2;
-            ctx.translate(radius, radius);
-            radius = radius * 0.9;
-
-            drawRoundClock();
-
+            
+            drawClock();
+            
             window.addEventListener('resize', handleWindowResize);
-
-            $("#toolbar-HH").val("0").trigger("change");
-            $("#toolbar-MM").val("0").trigger("change");
-            $("#toolbar-SS").val("20").trigger("change");
-            $('#toolbar-interval').val("5").trigger("change");
+   
+            $("#toolbar-HH").val(HH).trigger("change");
+            $("#toolbar-MM").val(MM).trigger("change");
+            $("#toolbar-SS").val(SS).trigger("change");
+            $('#toolbar-interval').val(interval).trigger("change");
+            $('#toolbar-clocktype').val(clockType).trigger("change");
 
             $('#toolbar-clocktype').on('change', handleClockTypeChange);
             $('#toolbar-HH').on('change', handleToolbarHHChange);
@@ -54,23 +63,21 @@
 
             $('#clock-start-btn').on('click', handleClockStartBtnPressed);
             $('#clock-stop-btn').on('click', handleClockStopBtnPressed);
-            $('#content-main').on('click', toggleClockStatus);
-          
-            getActiveFileView();
-            registerActiveViewChanged();
+            $('#content-main').on('click', handleClockStatusChanged);
+     
         });
     };
-
+    // #region EventHandlers
     function handleWindowResize() {
         $('body').css('height', window.innerHeight * 0.96);
-       // $('#content-main').css('height', window.innerHeight * 0.9);
-       // $('#content-tool').css('height', window.innerHeight * 0.9);
-        var canvas_size = Math.min.apply(null, [$('#content-main').width() * 0.96, $('#content-main').height() * 0.96]);
-       // showNotification("canvas size is " + canvas_size + "height is " + $('#content-main').width() + "width is " + $('#content-main').height());
-        $('#canvas').css({ 'height': canvas_size, 'width': canvas_size});
+        var size = Math.min.apply(null, [$('#content-main').height() * 0.96, $('#content-main').width() * 0.96]);
+        $('#canvas').css({ 'height': size, 'width': size});
+        canvasWidth = $('#canvas').width();
+        canvasHeight = $('#canvas').height();
+        radius = 0.9 * Math.min.apply(null, [canvasHeight, canvasWidth]) / 2;
     }
 
-    function toggleClockStatus() {
+    function handleClockStatusChanged() {
         isTimerStarted = !isTimerStarted;
         if (isTimerStarted) {
             isTimeUp = false;
@@ -83,11 +90,7 @@
         startTime = new Date();
         isTimerStarted = true;
         isTimeUp = false;
-        if (clockType == ClockType.ROUND_CLOCK) {
-            timer = setInterval(drawRoundClock, 1000);
-        } else if (clockType == ClockType.DIGITAL_CLOCK) {
-            timer = setInterval(drawDigitalClock, 1000);
-        }
+        timer = setInterval(drawClock, 1000);
     }
     function handleClockStopBtnPressed() {
         isTimerStarted = false;
@@ -98,6 +101,7 @@
             isTimerStarted = false;
         }
         HH = parseInt(this.value);
+        saveSettings('HH', HH);
         isTimerStarted = false;
         drawClock();
     }
@@ -106,6 +110,7 @@
             isTimerStarted = false;
         }
         MM = parseInt(this.value);
+        saveSettings('MM', MM);
         isTimerStarted = false;
         drawClock();
     }
@@ -114,6 +119,7 @@
             isTimerStarted = false;
         }
         SS = parseInt(this.value);
+        saveSettings('SS', SS);
         isTimerStarted = false;
         drawClock();
     }
@@ -122,42 +128,33 @@
             isTimerStarted = false;
         }
         interval = parseInt(this.value);
+        saveSettings('interval', interval);
         isTimerStarted = false;
         drawClock();
     }
-    function drawClock() {
-        switch (clockType) {
-            case ClockType.BAR_CLOCK:
-                break;
-            case ClockType.DIGITAL_CLOCK:
-                drawDigitalClock();
-                break;
-            case ClockType.ROUND_CLOCK:
-                drawRoundClock();
-                break;
-        }
-    }
+    
     function handleClockTypeChange() {
+        saveSettings('clocktype', this.value);
         switch (this.value) {
             case ClockType.BAR_CLOCK:
                 clockType = ClockType.BAR_CLOCK;
                 break;
             case ClockType.ROUND_CLOCK:
                 clockType = ClockType.ROUND_CLOCK;
-                ctx.translate(canvasHeight / 2, canvasHeight / 2);
-                ctx.clearRect(0, 0, canvasWidth, canvasHeight);
-                drawRoundClock();
                 break;
             case ClockType.DIGITAL_CLOCK:
                 clockType = ClockType.DIGITAL_CLOCK;
-                ctx.translate(-canvasHeight / 2, -canvasHeight/2);
-                ctx.clearRect(0, 0, canvasWidth, canvasHeight);
-                drawDigitalClock();
                 break;
         }
+        drawClock();
     }
 
-    function getActiveFileView() {
+    function handleActiveViewChanged() {
+        Office.context.document.addHandlerAsync(Office.EventType.ActiveViewChanged,
+            handleActiveFileViewChanged);
+    }
+
+    function handleActiveFileViewChanged() {
         Office.context.document.getActiveViewAsync(function (asyncResult) {
             if (asyncResult.status == "failed") {
                 showNotification("Action failed with error: " + asyncResult.error.message);
@@ -167,10 +164,11 @@
                 var clockarea = document.getElementById("content-main");
                 if (asyncResult.value == "read") {
                     toolbar.style.display = "none";
-                    clockarea.style.width = "100%";
-                    var canvas_size = Math.min.apply(null, [$('#content-main').width() * 0.96, $('#content-main').height() * 0.96]);
-                    $('#canvas').css({ 'height': canvas_size, 'width': canvas_size });
-                    showNotification("canvas size is " + canvas_size + "height is " + $('#content-main').width() + "width is " + $('#content-main').height());
+                    $("#content-main").css('margin-left', '20 %');
+                    var size = Math.min.apply(null, [$('#content-main').height() * 0.96, $('#content-main').width() * 0.96]);
+                    $('#canvas').css({ 'height': size, 'width': size});                   
+                    canvasWidth = $('#canvas').width();
+                    canvasHeight = $('#canvas').height();
                 } else {
                     toolbar.style.display = "block";
                     clockarea.style.width = "60%";
@@ -179,11 +177,9 @@
         });
     }
 
-    function registerActiveViewChanged() {
-        Office.context.document.addHandlerAsync(Office.EventType.ActiveViewChanged,
-            getActiveFileView);
-    }
+    // #endregion
 
+    // #region RoundClock
 
     function drawRoundClock() {
         drawClockFace(ctx, radius);
@@ -257,17 +253,21 @@
         ctx.rotate(-pos);
     }
 
+    // #endregion
+
+    // #region DigitalClock
+
     function drawDigitalClock() {
-        ctx.clearRect(0, 0, canvasWidth, canvasHeight);
         ctx.font = "80pt calibri";
         ctx.fillStyle = "black";
+        ctx.textAlign = "center";
         if (isTimeUp) {
             clearInterval(timer);
-            ctx.fillText(formatHHMMSS(0, 0, 0), canvasWidth / 2, canvasHeight / 2);
+            ctx.strokeText(formatHHMMSS(0, 0, 0), canvasWidth/2, canvasHeight / 2);
         } else if (isTimerStarted) {
-            ctx.fillText(calculateDigitalTime(), canvasWidth / 2, canvasHeight / 2);
+            ctx.strokeText(calculateDigitalTime(), canvasWidth/2, canvasHeight / 2);
         } else {
-            ctx.fillText(formatHHMMSS(HH, MM, SS), canvasWidth / 2, canvasHeight / 2);
+            ctx.strokeText(formatHHMMSS(HH, MM, SS), canvasWidth/2, canvasHeight / 2);
         }
     }
 
@@ -310,11 +310,63 @@
         return rltStr;
     }
 
-    // Helper function for displaying notifications
+    // #endregion
+
+    // #region BarClock
+
+    function drawBarClock() {
+    }
+
+    // #endregion
+
+    // #region OtherFunctions
+
+    function drawClock() {
+        switch (clockType) {
+            case ClockType.BAR_CLOCK:
+                drawBarClock();
+                break;
+            case ClockType.DIGITAL_CLOCK:
+                var canvas = document.getElementById("canvas");
+                canvasHeight = canvas.height;
+                canvasWidth = canvas.width;
+                ctx = canvas.getContext("2d");
+                ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+                ctx.setTransform(1, 0, 0, 1, 0, 0);
+                drawDigitalClock();
+                break;
+            case ClockType.ROUND_CLOCK:
+                var canvas = document.getElementById("canvas");
+                canvasHeight = canvas.height;
+                canvasWidth = canvas.width;
+                ctx = canvas.getContext("2d");
+                ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+                var size = Math.min.apply(null, [canvasHeight, canvasWidth]) / 2;
+                radius = size * 0.9;
+                ctx.translate(size, size);
+                drawRoundClock();
+                ctx.translate(-size, -size);
+                break;
+        }
+    }
+
+    function saveSettings(key, value) {
+        Office.context.document.settings.set(key, value);
+        Office.context.document.settings.saveAsync(function (asyncResult) {
+            console.log('Settings saved with status: ' + asyncResult.status);
+        });
+    }
+
+    function loadSettings(key) {
+        return Office.context.document.settings.get(key);
+    }
+
     function showNotification(header, content) {
         $("#notificationHeader").text(header);
         $("#notificationBody").text(content);
         messageBanner.showBanner();
         messageBanner.toggleExpansion();
     }
+
+    // #endregion
 })();
