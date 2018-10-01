@@ -10,6 +10,7 @@
     var startTime = new Date();
     var isTimerStarted = false;
     var isTimeUp = false;
+    var barPtrx, barPtry;
 
     var HH = 0, MM = 0, SS = 20;
     var interval = 5;
@@ -315,6 +316,73 @@
     // #region BarClock
 
     function drawBarClock() {
+        var rectw = canvasWidth * 0.8;
+        var recth = canvasHeight / 5;
+        drawBarClockBody(rectw, recth);
+        drawBarClockNumber(rectw, recth);
+        drawBarClockPointer(rectw, recth);
+    }
+
+    function drawBarClockBody(rectw, recth) {   
+        barPtrx = canvasWidth / 2 - rectw / 2;
+        barPtry = canvasHeight / 2 - recth / 2;
+        ctx.beginPath();
+        ctx.rect(canvasWidth / 2 - rectw / 2, canvasHeight / 2 - recth / 2, rectw, recth);
+        ctx.fillStyle = "#104B10";
+        ctx.fill();
+    }
+    function drawBarClockPointer(rectw, recth) {
+        if (isTimerStarted) {
+            var totalDuration = HH * 3600 + MM * 60 + SS;
+            var startTimeInSec = startTime.getHours() * 3600 + startTime.getMinutes() * 60 + startTime.getSeconds();
+            var now = new Date();
+            var currTimeInSec = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
+            if (currTimeInSec - startTimeInSec > totalDuration) {
+                isTimeUp = true;
+                isTimerStarted = false;
+                barPtrx = canvasWidth / 2 + rectw / 2;
+                clearInterval(timer);
+            } else {
+                var deltaw = (currTimeInSec - startTimeInSec) / totalDuration * rectw;
+                barPtrx += deltaw;
+            }
+        }
+        if (isTimeUp) {
+            barPtrx = canvasWidth / 2 + rectw / 2;
+            clearInterval(timer);
+        }
+        if (!isTimeUp && !isTimerStarted) {
+            barPtrx = canvasWidth / 2 - rectw / 2;
+        }
+        var rectPtrw = canvasWidth * 0.01;
+        var rectPtrh = recth;
+        ctx.beginPath();
+        ctx.rect(barPtrx, barPtry, rectPtrw, rectPtrh);
+        ctx.fillStyle = "#F39F16";
+        ctx.fill();
+
+        var triPtrw = canvasWidth * 0.1;
+        var triPtrh = canvasWidth * 0.05;
+        ctx.beginPath();
+        ctx.moveTo(barPtrx - triPtrw / 2, barPtry - triPtrh + rectPtrw / 2);
+        ctx.lineTo(barPtrx + triPtrw / 2, barPtry - triPtrh + rectPtrw / 2);
+        ctx.lineTo(barPtrx + rectPtrw / 2, barPtry + rectPtrw / 2);
+        ctx.fillStyle = "#F39F16";
+        ctx.fill();
+    }
+    function drawBarClockNumber(rectw, recth) {
+        var lbx = barPtrx;
+        var lby = barPtry + recth;
+        var numIntervals = (HH * 3600 + MM * 60 + SS) / interval;
+        var intervalw = rectw / numIntervals;
+        var intervalh = recth / 10;
+        for (var i = 0; i <= numIntervals; i++) {
+            ctx.beginPath();
+            ctx.moveTo(lbx + i * intervalw, lby);
+            ctx.lineTo(lbx + i * intervalw, lby - intervalh);
+            ctx.strokeStyle = "black";
+            ctx.stroke();
+        }
     }
 
     // #endregion
@@ -322,25 +390,20 @@
     // #region OtherFunctions
 
     function drawClock() {
+        var canvas = document.getElementById("canvas");
+        canvasHeight = canvas.height;
+        canvasWidth = canvas.width;
+        ctx = canvas.getContext("2d");
+        ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
         switch (clockType) {
             case ClockType.BAR_CLOCK:
                 drawBarClock();
                 break;
             case ClockType.DIGITAL_CLOCK:
-                var canvas = document.getElementById("canvas");
-                canvasHeight = canvas.height;
-                canvasWidth = canvas.width;
-                ctx = canvas.getContext("2d");
-                ctx.clearRect(0, 0, canvasWidth, canvasHeight);
-                ctx.setTransform(1, 0, 0, 1, 0, 0);
                 drawDigitalClock();
                 break;
             case ClockType.ROUND_CLOCK:
-                var canvas = document.getElementById("canvas");
-                canvasHeight = canvas.height;
-                canvasWidth = canvas.width;
-                ctx = canvas.getContext("2d");
-                ctx.clearRect(0, 0, canvasWidth, canvasHeight);
                 var size = Math.min.apply(null, [canvasHeight, canvasWidth]) / 2;
                 radius = size * 0.9;
                 ctx.translate(size, size);
