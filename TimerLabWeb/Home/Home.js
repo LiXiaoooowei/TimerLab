@@ -1,7 +1,7 @@
 ﻿(function () {
     "use strict";
-    var ClockType = Object.freeze({ "BAR_CLOCK": "bar", "ROUND_CLOCK": "round", "DIGITAL_CLOCK": "digital" });
-    var clockType = ClockType.ROUND_CLOCK;
+    var ClockType = Object.freeze({ "BAR_CLOCK": "bar", "SQUARE_CLOCK": "square", "DIGITAL_CLOCK": "digital" });
+    var clockType = ClockType.SQUARE_CLOCK;
     var messageBanner;
     var ctx;
     var radius;
@@ -140,8 +140,8 @@
             case ClockType.BAR_CLOCK:
                 clockType = ClockType.BAR_CLOCK;
                 break;
-            case ClockType.ROUND_CLOCK:
-                clockType = ClockType.ROUND_CLOCK;
+            case ClockType.SQUARE_CLOCK:
+                clockType = ClockType.SQUARE_CLOCK;
                 break;
             case ClockType.DIGITAL_CLOCK:
                 clockType = ClockType.DIGITAL_CLOCK;
@@ -180,37 +180,39 @@
 
     // #endregion
 
-    // #region RoundClock
+    // #region SquareClock
 
-    function drawRoundClock() {
-        drawClockFace(ctx, radius);
-        drawClockNumbers(ctx, radius);
-        drawClockTime(ctx, radius);
+    function drawSquareClock() {
+        drawSqClockFace(ctx, radius);
+        drawSqClockNumbers(ctx, radius);
+        drawSqClockTime(ctx, radius);
     }
 
-    function drawClockFace(ctx, radius) {
+    function drawSqClockFace(ctx, radius) {
         var grad;
 
         ctx.beginPath();
-        ctx.arc(0, 0, radius, 0, 2 * Math.PI);
+        ctx.rect(-radius, -radius, radius * 2, radius * 2);
         ctx.fillStyle = 'white';
         ctx.fill();
 
-        grad = ctx.createRadialGradient(0, 0, radius * 0.95, 0, 0, radius * 1.05);
-        grad.addColorStop(0, '#333');
-        grad.addColorStop(0.5, 'white');
+        grad = ctx.createLinearGradient(-radius * 0.95, -radius * 0.95, radius * 1.05, radius * 1.05);
+        for (var i = 0; i < 1; i += 0.2) {
+            grad.addColorStop(i, '#333');
+            grad.addColorStop(i + 0.1, 'white');
+        }
         grad.addColorStop(1, '#333');
         ctx.strokeStyle = grad;
         ctx.lineWidth = radius * 0.1;
         ctx.stroke();
 
         ctx.beginPath();
-        ctx.arc(0, 0, radius * 0.1, 0, 2 * Math.PI);
+        ctx.rect(-radius * 0.1, -radius * 0.1, radius * 0.2, radius * 0.2);
         ctx.fillStyle = '#333';
         ctx.fill();
     }
 
-    function drawClockNumbers(ctx, radius) {
+    function drawSqClockNumbers(ctx, radius) {
         var ang;
         var numIntervals = (HH * 3600 + MM * 60 + SS) / interval;
         ctx.font = radius * 0.15 + "px arial";
@@ -228,7 +230,7 @@
         }
     }
 
-    function drawClockTime(ctx, radius) {
+    function drawSqClockTime(ctx, radius) {
         var totalDuration = HH * 3600 + MM * 60 + SS;
         var startTimeInSec = startTime.getHours() * 3600 + startTime.getMinutes() * 60 + startTime.getSeconds();
         var now = new Date();
@@ -237,13 +239,13 @@
         if (currTimeInSec - startTimeInSec > totalDuration || !isTimerStarted) {
             clearInterval(timer);
             isTimerStarted = false;
-            drawClockHand(ctx, 0, radius * 0.9, radius * 0.02); //reset
+            drawSqClockHand(ctx, 0, radius * 0.9, radius * 0.02); //reset
         } else {
-            drawClockHand(ctx, radToRotate, radius * 0.9, radius * 0.02);
+            drawSqClockHand(ctx, radToRotate, radius * 0.9, radius * 0.02);
         }
     }
 
-    function drawClockHand(ctx, pos, length, width) {
+    function drawSqClockHand(ctx, pos, length, width) {
         ctx.beginPath();
         ctx.lineWidth = width;
         ctx.lineCap = "round";
@@ -264,11 +266,11 @@
         ctx.textAlign = "center";
         if (isTimeUp) {
             clearInterval(timer);
-            ctx.strokeText(formatHHMMSS(0, 0, 0), canvasWidth/2, canvasHeight / 2);
+            ctx.fillText(formatHHMMSS(0, 0, 0), canvasWidth/2, canvasHeight / 2);
         } else if (isTimerStarted) {
-            ctx.strokeText(calculateDigitalTime(), canvasWidth/2, canvasHeight / 2);
+            ctx.fillText(calculateDigitalTime(), canvasWidth/2, canvasHeight / 2);
         } else {
-            ctx.strokeText(formatHHMMSS(HH, MM, SS), canvasWidth/2, canvasHeight / 2);
+            ctx.fillText(formatHHMMSS(HH, MM, SS), canvasWidth/2, canvasHeight / 2);
         }
     }
 
@@ -403,11 +405,11 @@
             case ClockType.DIGITAL_CLOCK:
                 drawDigitalClock();
                 break;
-            case ClockType.ROUND_CLOCK:
+            case ClockType.SQUARE_CLOCK:
                 var size = Math.min.apply(null, [canvasHeight, canvasWidth]) / 2;
                 radius = size * 0.9;
                 ctx.translate(size, size);
-                drawRoundClock();
+                drawSquareClock();
                 ctx.translate(-size, -size);
                 break;
         }
