@@ -1,13 +1,20 @@
 ﻿(function () {
     "use strict";
+
     var ClockType = Object.freeze({ "BAR_CLOCK": "bar", "SQUARE_CLOCK": "square", "DIGITAL_CLOCK": "digital" });
+    var TickType = Object.freeze({ "NONE": "none", "TICK": "tick" });
+    var TimeupType = Object.freeze({ "NONE": "none", "ALARM": "alarm" });
+
     var clockType = ClockType.SQUARE_CLOCK;
+    var tickType = TickType.TICK;
+    var timeupType = TimeupType.ALARM;
+
     var messageBanner;
     var ctx;
     var radius;
     var timer;
     var canvasHeight, canvasWidth;
-    var startTime = new Date();
+    var startTime = null;
     var isTimerStarted = false;
     var isTimeUp = false;
     var isReset = false;
@@ -15,6 +22,9 @@
 
     var HH = 0, MM = 0, SS = 20;
     var interval = 5;
+
+    var tick_audio = new Audio('../Resources/Audio/ticking.mp3');
+    var timeup_audio = new Audio('../Resources/Audio/alarm.mp3');
 
     // The initialize function must be run each time a new page is loaded
     Office.initialize = function (reason) {
@@ -41,6 +51,11 @@
             SS = loadSettings('SS') == null ? SS : loadSettings('SS');
             interval = loadSettings('interval') == null ? interval : loadSettings('interval');
             clockType = loadSettings('clocktype') == null ? clockType : loadSettings('clocktype');
+            tickType = loadSettings('tickType') == null ? tickType : loadSettings('tickType');
+            timeupType = loadSettings('timeupType') == null ? timeupType : loadSettings('timeupType');
+
+            loadTickSound(tickType);
+            loadTimeupSound(timeupType);
 
             var canvas = document.getElementById("canvas");
             canvasHeight = canvas.height;
@@ -56,6 +71,8 @@
             $("#toolbar-SS").val(SS).trigger("change");
             $('#toolbar-interval').val(interval).trigger("change");
             $('#toolbar-clocktype').val(clockType).trigger("change");
+            $("#toolbar-ticking-sound").val(tickType).trigger("change");
+            $("#toolbar-timeup-sound").val(timeupType).trigger("change");
 
             $('#toolbar-clocktype').on('change', handleClockTypeChange);
             $('#toolbar-HH').on('change', handleToolbarHHChange);
@@ -66,6 +83,9 @@
             $('#clock-start-btn').on('click', handleClockStartBtnPressed);
             $('#clock-stop-btn').on('click', handleClockStopBtnPressed);
             $('#content-main').on('click', handleClockStatusChanged);
+
+            $("#toolbar-ticking-sound").on('change', handleTickSoundChange);
+            $("#toolbar-timeup-sound").on('change', handleTimeupSoundChange);
      
         });
     };
@@ -244,6 +264,18 @@
         });
     }
 
+    function handleTickSoundChange() {
+        tickType = this.value;
+        saveSettings('tickType', tickType);
+        loadTickSound(tickType);
+    }
+
+    function handleTimeupSoundChange() {
+        timeupType = this.value;
+        saveSettings('timeupType', timeupType);
+        loadTimeupSound(timeupType);
+    }
+
     // #endregion
 
     // #region SquareClock
@@ -298,10 +330,15 @@
 
     function drawSqClockTime(ctx, radius) {
         var totalDuration = HH * 3600 + MM * 60 + SS;
-        var startTimeInSec = startTime.getHours() * 3600 + startTime.getMinutes() * 60 + startTime.getSeconds();
+        var startTimeInSec = startTime == null? 0: startTime.getHours() * 3600 + startTime.getMinutes() * 60 + startTime.getSeconds();
         var now = new Date();
         var currTimeInSec = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
         var radToRotate = (currTimeInSec - startTimeInSec) * 1.0 / totalDuration * 2 * Math.PI;
+        if (currTimeInSec - startTimeInSec == totalDuration) {
+            if (timeup_audio != null) {
+                timeup_audio.play();
+            }
+        }
         if (currTimeInSec - startTimeInSec > totalDuration || !isTimerStarted) {
             clearInterval(timer);
             isTimerStarted = false;
@@ -334,20 +371,25 @@
             clearInterval(timer);
             ctx.fillText(formatHHMMSS(0, 0, 0), canvasWidth/2, canvasHeight / 2);
         } else if (isTimerStarted) {
-            ctx.fillText(calculateDigitalTime(), canvasWidth/2, canvasHeight / 2);
-        } else {
+            ctx.fillText(calculateDigitalTime(), canvasWidth / 2, canvasHeight / 2);
+        } else if (!isTimerStarted) {
+            clearInterval(timer);
             ctx.fillText(formatHHMMSS(HH, MM, SS), canvasWidth/2, canvasHeight / 2);
         }
     }
 
     function calculateDigitalTime() {
         var totalDuration = HH * 3600 + MM * 60 + SS;
-        var startTimeInSec = startTime.getHours() * 3600 + startTime.getMinutes() * 60 + startTime.getSeconds();
+        var startTimeInSec = startTime == null ? 0 :startTime.getHours() * 3600 + startTime.getMinutes() * 60 + startTime.getSeconds();
         var now = new Date();
         var currTimeInSec = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
         var timeLeft = totalDuration - (currTimeInSec - startTimeInSec);
         var hourLeft = 0, minLeft = 0, ssLeft = 0;
-        if (timeLeft > 0) {
+        if (timeLeft == 0) {
+            if (timeup_audio != null) {
+                timeup_audio.play();
+            }
+        } else if (timeLeft > 0) {
             hourLeft = Math.floor(timeLeft / 3600);
             minLeft = Math.floor((timeLeft % 3600) / 60);
             ssLeft = timeLeft - hourLeft * 3600 - minLeft * 60;
@@ -402,10 +444,15 @@
     function drawBarClockPointer(rectw, recth) {
         if (isTimerStarted) {
             var totalDuration = HH * 3600 + MM * 60 + SS;
-            var startTimeInSec = startTime.getHours() * 3600 + startTime.getMinutes() * 60 + startTime.getSeconds();
+            var startTimeInSec = startTime == null ? 0 :startTime.getHours() * 3600 + startTime.getMinutes() * 60 + startTime.getSeconds();
             var now = new Date();
             var currTimeInSec = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
-            if (currTimeInSec - startTimeInSec > totalDuration) {
+            if (currTimeInSec - startTimeInSec == totalDuration) {
+                if (timeup_audio != null) {
+                    timeup_audio.play();
+                }
+            }
+            if (currTimeInSec - startTimeInSec >= totalDuration) {
                 isTimeUp = true;
                 isTimerStarted = false;
                 barPtrx = canvasWidth / 2 + rectw / 2;
@@ -479,6 +526,9 @@
                 ctx.translate(-size, -size);
                 break;
         }
+        if (isTimerStarted && tick_audio != null) {
+            tick_audio.play();
+        }
     }
 
     function saveSettings(key, value) {
@@ -497,7 +547,9 @@
             HH = 0;
             MM = 0;
             SS = 20;
-            interval = 5;
+        interval = 5;
+        isTimerStarted = false;
+        isTimeUp = false;
             $("#toolbar-HH").val(HH).trigger("change");
             $("#toolbar-MM").val(MM).trigger("change");
             $("#toolbar-SS").val(SS).trigger("change");
@@ -507,6 +559,28 @@
             saveSettings('SS', SS);
         saveSettings('interval', interval);
         isReset = false;
+    }
+
+    function loadTickSound(tickType) {
+        switch (tickType) {
+            case TickType.NONE:
+                tick_audio = null;
+                break;
+            case TickType.TICK:
+                tick_audio = new Audio('../Resources/Audio/ticking.mp3');
+                break;
+        }
+    }
+
+    function loadTimeupSound(timeupType) {
+        switch (timeupType) {
+            case TimeupType.NONE:
+                timeup_audio = null;
+                break;
+            case TimeupType.ALARM:
+                timeup_audio = new Audio('../Resources/Audio/alarm.mp3');
+                break;
+        }
     }
 
     function showNotification(header, content) {

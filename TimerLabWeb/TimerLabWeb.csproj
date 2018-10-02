@@ -114,8 +114,8 @@
     <Content Include="Home\Home.css" />
     <Content Include="Home\Home.html" />
     <Content Include="Home\Home.js" />
-    <Content Include="Images\Button32x32.png" />
-    <Content Include="Images\Close.png" />
+    <Content Include="Resources\Audio\alarm.mp3" />
+    <Content Include="Resources\Audio\ticking.mp3" />
     <Content Include="Scripts\FabricUI\MessageBanner.js" />
     <Content Include="Scripts\jquery-1.9.1.js" />
     <Content Include="Scripts\jquery-1.9.1.min.js" />
@@ -410,6 +410,7 @@
       <DependentUpon>Web.config</DependentUpon>
     </None>
   </ItemGroup>
+  <ItemGroup />
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
