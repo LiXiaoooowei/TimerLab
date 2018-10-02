@@ -10,6 +10,7 @@
     var startTime = new Date();
     var isTimerStarted = false;
     var isTimeUp = false;
+    var isReset = false;
     var barPtrx, barPtry;
 
     var HH = 0, MM = 0, SS = 20;
@@ -95,11 +96,25 @@
     }
     function handleClockStopBtnPressed() {
         isTimerStarted = false;
+        isTimeUp = false;
         clearInterval(timer);
     }
     function handleToolbarHHChange(e) {
         if (isTimerStarted) {
             isTimerStarted = false;
+        }
+        if ((parseInt(this.value) * 3600 + MM * 60 + SS) % interval != 0
+            && clockType != ClockType.DIGITAL_CLOCK) {
+            $("#error-message-duration").text("interval value must be divisible by duration");
+            return;
+        }
+        if (!isReset) {
+            $("#error-message-duration").text("hour changed successfully!");
+            setTimeout(function () {
+                $("#error-message-duration").text("");
+            }, 2000);
+        } else {
+            $("#error-message-duration").text("");
         }
         HH = parseInt(this.value);
         saveSettings('HH', HH);
@@ -110,6 +125,19 @@
         if (isTimerStarted) {
             isTimerStarted = false;
         }
+        if ((HH * 3600 + parseInt(this.value) * 60 + SS) % interval != 0
+            && clockType != ClockType.DIGITAL_CLOCK) {
+            $("#error-message-duration").text("interval value must be divisible by duration");
+            return;
+        }
+        if (!isReset) {
+            $("#error-message-duration").text("minute changed successfully!");
+            setTimeout(function () {
+                $("#error-message-duration").text("");
+            }, 2000);
+        } else {
+            $("#error-message-duration").text("");
+        }
         MM = parseInt(this.value);
         saveSettings('MM', MM);
         isTimerStarted = false;
@@ -118,6 +146,19 @@
     function handleToolbarSSChange() {
         if (isTimerStarted) {
             isTimerStarted = false;
+        }
+        if ((HH * 3600 + MM * 60 + parseInt(this.value)) % interval != 0
+            && clockType != ClockType.DIGITAL_CLOCK) {
+            $("#error-message-duration").text("interval value must be divisible by duration");
+            return;
+        }
+        if (!isReset) {
+            $("#error-message-duration").text("second changed successfully!");
+            setTimeout(function () {
+                $("#error-message-duration").text("");
+            }, 2000);
+        } else {
+            $("#error-message-duration").text("");
         }
         SS = parseInt(this.value);
         saveSettings('SS', SS);
@@ -128,6 +169,27 @@
         if (isTimerStarted) {
             isTimerStarted = false;
         }
+        if (!/^\s*\d+\s*$/.test(this.value)) {
+            $("#error-message").text("interval value must be integer");
+            return;
+        } else if (parseInt(this.value) == 0) {
+            $("#error-message").text("interval value cannot be zero");
+            return;
+        } else if (parseInt(this.value) > 60) {
+            $("#error-message").text("interval value should be less than 60");
+            return;
+        } else if ((HH * 3600 + MM * 60 + SS) % parseInt(this.value) != 0) {
+            $("#error-message").text("interval value must be divisible by duration");
+            return;
+        }
+        if (!isReset) {
+            $("#error-message").text("interval changed successfully!");
+            setTimeout(function () {
+                $("#error-message").text("");
+            }, 2000);
+        } else {
+            $("#error-message").text("");
+        }
         interval = parseInt(this.value);
         saveSettings('interval', interval);
         isTimerStarted = false;
@@ -136,15 +198,19 @@
     
     function handleClockTypeChange() {
         saveSettings('clocktype', this.value);
+        reset();
         switch (this.value) {
             case ClockType.BAR_CLOCK:
                 clockType = ClockType.BAR_CLOCK;
+                $("#interval-div").css("display", "block");
                 break;
             case ClockType.SQUARE_CLOCK:
                 clockType = ClockType.SQUARE_CLOCK;
+                $("#interval-div").css("display", "block");
                 break;
             case ClockType.DIGITAL_CLOCK:
                 clockType = ClockType.DIGITAL_CLOCK;
+                $("#interval-div").css("display", "none");
                 break;
         }
         drawClock();
@@ -424,6 +490,23 @@
 
     function loadSettings(key) {
         return Office.context.document.settings.get(key);
+    }
+
+    function reset() {
+            isReset = true;
+            HH = 0;
+            MM = 0;
+            SS = 20;
+            interval = 5;
+            $("#toolbar-HH").val(HH).trigger("change");
+            $("#toolbar-MM").val(MM).trigger("change");
+            $("#toolbar-SS").val(SS).trigger("change");
+            $('#toolbar-interval').val(interval).trigger("change");
+            saveSettings('HH', HH);
+            saveSettings('MM', MM);
+            saveSettings('SS', SS);
+        saveSettings('interval', interval);
+        isReset = false;
     }
 
     function showNotification(header, content) {
