@@ -54,8 +54,8 @@
             tickType = loadSettings('tickType') == null ? tickType : loadSettings('tickType');
             timeupType = loadSettings('timeupType') == null ? timeupType : loadSettings('timeupType');
 
-            loadTickSound(tickType);
-            loadTimeupSound(timeupType);
+            loadTickSound();
+            loadTimeupSound();
 
             var canvas = document.getElementById("canvas");
             canvasHeight = canvas.height;
@@ -82,6 +82,8 @@
 
             $('#clock-start-btn').on('click', handleClockStartBtnPressed);
             $('#clock-stop-btn').on('click', handleClockStopBtnPressed);
+            $('#clock-pause-btn').on('click', handleClockPauseBtnPressed);
+            $('#clock-reset-btn').on('click', handleClockResetBtnPressed);
             $('#content-main').on('click', handleClockStatusChanged);
 
             $("#toolbar-ticking-sound").on('change', handleTickSoundChange);
@@ -267,13 +269,29 @@
     function handleTickSoundChange() {
         tickType = this.value;
         saveSettings('tickType', tickType);
-        loadTickSound(tickType);
+        loadTickSound();
     }
 
     function handleTimeupSoundChange() {
         timeupType = this.value;
         saveSettings('timeupType', timeupType);
-        loadTimeupSound(timeupType);
+        loadTimeupSound();
+    }
+
+    function handleClockPauseBtnPressed() { }
+
+    function handleClockResetBtnPressed() {
+        reset();
+        tickType = TickType.TICK;
+        timeupType = TimeupType.ALARM;
+        loadTickSound();
+        loadTimeupSound();
+
+        $("#toolbar-ticking-sound").val(tickType).trigger("change");
+        $("#toolbar-timeup-sound").val(timeupType).trigger("change");
+
+        saveSettings('tickType', tickType);
+        saveSettings('timeupType', timeupType);
     }
 
     // #endregion
@@ -561,7 +579,7 @@
         isReset = false;
     }
 
-    function loadTickSound(tickType) {
+    function loadTickSound(t) {
         switch (tickType) {
             case TickType.NONE:
                 tick_audio = null;
@@ -572,7 +590,7 @@
         }
     }
 
-    function loadTimeupSound(timeupType) {
+    function loadTimeupSound() {
         switch (timeupType) {
             case TimeupType.NONE:
                 timeup_audio = null;
