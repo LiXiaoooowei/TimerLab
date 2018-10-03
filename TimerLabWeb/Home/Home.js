@@ -167,7 +167,8 @@
         HH = parseInt(this.value);
         saveSettings('HH', HH);
         isTimerStarted = false;
-        drawClock();
+        // drawClock();
+        handleClockStopBtnPressed();
     }
     function handleToolbarMMChange(e) {
         if (isTimerStarted) {
@@ -189,7 +190,8 @@
         MM = parseInt(this.value);
         saveSettings('MM', MM);
         isTimerStarted = false;
-        drawClock();
+       // drawClock();
+        handleClockStopBtnPressed();
     }
     function handleToolbarSSChange() {
         if (isTimerStarted) {
@@ -211,7 +213,8 @@
         SS = parseInt(this.value);
         saveSettings('SS', SS);
         isTimerStarted = false;
-        drawClock();
+       // drawClock();
+        handleClockStopBtnPressed();
     }
     function handleIntervalInputChange() {
         if (isTimerStarted) {
@@ -241,7 +244,8 @@
         interval = parseInt(this.value);
         saveSettings('interval', interval);
         isTimerStarted = false;
-        drawClock();
+       // drawClock();
+        handleClockStopBtnPressed();
     }
     
     function handleClockTypeChange() {
