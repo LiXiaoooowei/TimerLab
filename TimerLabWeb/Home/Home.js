@@ -13,11 +13,16 @@
     var ctx;
     var radius;
     var timer;
+    var pausedTimer;
     var canvasHeight, canvasWidth;
     var startTime = null;
     var isTimerStarted = false;
+    var hasInstructionToStartTimer = false;
     var isTimeUp = false;
     var isReset = false;
+    var pausedTimeInSec = 0;
+    var pausedDuration = 0;
+    var isPaused = false;
     var barPtrx, barPtry;
 
     var HH = 0, MM = 0, SS = 20;
@@ -107,24 +112,40 @@
     }
 
     function handleClockStatusChanged() {
-        isTimerStarted = !isTimerStarted;
-        if (isTimerStarted) {
-            isTimeUp = false;
+        hasInstructionToStartTimer = !hasInstructionToStartTimer;
+        if (hasInstructionToStartTimer) {
             handleClockStartBtnPressed();
         } else {
             handleClockStopBtnPressed();
         }
     }
-    function handleClockStartBtnPressed() { 
-        startTime = new Date();
-        isTimerStarted = true;
-        isTimeUp = false;
-        timer = setInterval(drawClock, 1000);
+    function handleClockStartBtnPressed() {
+        if (!isPaused && !isTimerStarted) {
+            startTime = new Date();
+            isTimerStarted = true;
+            isTimeUp = false;
+            isPaused = false;
+            pausedDuration = pausedDuration == 0 ? 0 : pausedDuration + 1;
+            clearInterval(pausedTimer);
+            timer = setInterval(drawClock, 1000);
+        } else if (isPaused && isTimerStarted) {
+            isTimerStarted = true;
+            isTimeUp = false;
+            isPaused = false;
+            pausedDuration = pausedDuration == 0 ? 0 : pausedDuration + 1;
+            clearInterval(pausedTimer);
+            timer = setInterval(drawClock, 1000);
+        } 
     }
     function handleClockStopBtnPressed() {
         isTimerStarted = false;
         isTimeUp = false;
+        pausedTimeInSec = 0;
+        pausedDuration = 0;
+        isPaused = false;
         clearInterval(timer);
+        clearInterval(pausedTimer);
+        drawClock();
     }
     function handleToolbarHHChange(e) {
         if (isTimerStarted) {
@@ -283,7 +304,15 @@
         loadTimeupSound();
     }
 
-    function handleClockPauseBtnPressed() { }
+    function handleClockPauseBtnPressed() {
+        if (isTimerStarted && !isPaused) {
+            isPaused = true;
+            pausedTimeInSec = new Date();
+            pausedTimeInSec = pausedTimeInSec.getHours() * 3600 + pausedTimeInSec.getMinutes() * 60 + pausedTimeInSec.getSeconds();
+            pausedTimer = setInterval(updatePauseDuration, 1000);
+            clearInterval(timer);
+        }
+    }
 
     function handleClockResetBtnPressed() {
         reset();
@@ -353,11 +382,15 @@
 
     function drawSqClockTime(ctx, radius) {
         var totalDuration = HH * 3600 + MM * 60 + SS;
-        var startTimeInSec = startTime == null? 0: startTime.getHours() * 3600 + startTime.getMinutes() * 60 + startTime.getSeconds();
+        var startTimeInSec = startTime == null ? 0 : startTime.getHours() * 3600 + startTime.getMinutes() * 60 + startTime.getSeconds() + pausedDuration;
         var now = new Date();
         var currTimeInSec = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
+        console.log("difference is " + (currTimeInSec - startTimeInSec));
         var radToRotate = (currTimeInSec - startTimeInSec) * 1.0 / totalDuration * 2 * Math.PI;
         if (currTimeInSec - startTimeInSec == totalDuration) {
+            pausedDuration = 0;
+            pausedTimeInSec = 0;
+            isPaused = false;
             if (timeup_audio != null) {
                 timeup_audio.play();
             }
@@ -403,7 +436,7 @@
 
     function calculateDigitalTime() {
         var totalDuration = HH * 3600 + MM * 60 + SS;
-        var startTimeInSec = startTime == null ? 0 :startTime.getHours() * 3600 + startTime.getMinutes() * 60 + startTime.getSeconds();
+        var startTimeInSec = startTime == null ? 0 : startTime.getHours() * 3600 + startTime.getMinutes() * 60 + startTime.getSeconds() + pausedDuration;
         var now = new Date();
         var currTimeInSec = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
         var timeLeft = totalDuration - (currTimeInSec - startTimeInSec);
@@ -467,7 +500,7 @@
     function drawBarClockPointer(rectw, recth) {
         if (isTimerStarted) {
             var totalDuration = HH * 3600 + MM * 60 + SS;
-            var startTimeInSec = startTime == null ? 0 :startTime.getHours() * 3600 + startTime.getMinutes() * 60 + startTime.getSeconds();
+            var startTimeInSec = startTime == null ? 0 : startTime.getHours() * 3600 + startTime.getMinutes() * 60 + startTime.getSeconds() + pausedDuration;
             var now = new Date();
             var currTimeInSec = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
             if (currTimeInSec - startTimeInSec == totalDuration) {
@@ -582,6 +615,11 @@
             saveSettings('SS', SS);
         saveSettings('interval', interval);
         isReset = false;
+        pausedDuration = 0;
+        pausedTimeInSec = 0;
+        isPaused = false;
+        clearInterval(timer);
+        clearInterval(pausedTimer);
     }
 
     function loadTickSound(t) {
@@ -604,6 +642,10 @@
                 timeup_audio = new Audio('../Resources/Audio/alarm.mp3');
                 break;
         }
+    }
+
+    function updatePauseDuration() {
+        pausedDuration += 1;
     }
 
     function showNotification(header, content) {
