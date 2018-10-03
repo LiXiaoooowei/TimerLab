@@ -58,8 +58,10 @@
             loadTimeupSound();
 
             var canvas = document.getElementById("canvas");
-            canvasHeight = canvas.height;
-            canvasWidth = canvas.width;
+            canvasHeight = loadSettings('canvash') == null ? canvas.height : loadSettings('canvash');
+            canvasWidth = loadSettings('canvasw') == null ? canvas.width : loadSettings('canvasw');
+            radius = loadSettings('radius') == null ? 0.9 * Math.min.apply(null, [canvasHeight, canvasWidth]) / 2 : loadSettings('radius');
+            $('#canvas').css({ 'height': canvasHeight, 'width': canvasWidth });
             ctx = canvas.getContext("2d");
             
             drawClock();
@@ -99,6 +101,9 @@
         canvasWidth = $('#canvas').width();
         canvasHeight = $('#canvas').height();
         radius = 0.9 * Math.min.apply(null, [canvasHeight, canvasWidth]) / 2;
+        saveSettings('canvasw', canvasWidth);
+        saveSettings('canvash', canvasHeight);
+        saveSettings('radius', radius);
     }
 
     function handleClockStatusChanged() {
