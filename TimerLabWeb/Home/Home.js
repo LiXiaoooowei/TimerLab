@@ -104,6 +104,7 @@
             $('#clock-stop-btn').on('click', handleClockStopBtnPressed);
             $('#clock-pause-btn').on('click', handleClockPauseBtnPressed);
             $('#clock-reset-btn').on('click', handleClockResetBtnPressed);
+            $('.toolbar-collapsible-btn ').on('click', handleCollapsibleBtnPressed);
             $('#canvas').on('click', handleClockStatusChanged);
 
             $("#toolbar-ticking-sound").on('change', handleTickSoundChange);
@@ -153,8 +154,8 @@
     };
     // #region EventHandlers
     function handleWindowResize() {
-        $('body').css('height', window.innerHeight * 0.96);
-        var size = Math.min.apply(null, [$('#content-main').height() * 0.96, $('#content-main').width() * 0.96]);
+        $('body').css('height', window.innerHeight);
+        var size = Math.min.apply(null, [$('#content-main').height() * 0.9, $('#content-main').width() * 0.9]);
         $('#canvas').css({ 'height': size, 'width': size });
         canvasWidth = $('#canvas').width();
         canvasHeight = $('#canvas').height();
@@ -373,13 +374,15 @@
                 if (asyncResult.value == "read") {
                     toolbar.style.display = "none";
                     $("#content-main").css('margin-left', '20 %');
-                    var size = Math.min.apply(null, [$('#content-main').height() * 0.96, $('#content-main').width() * 0.96]);
+                    var size = Math.min.apply(null, [$('#content-main').height() * 0.90, $('#content-main').width() * 0.90]);
                     $('#canvas').css({ 'height': size, 'width': size });
                     canvasWidth = $('#canvas').width();
                     canvasHeight = $('#canvas').height();
+                    $('.toolbar-collapsible-btn').css("display", "none");
                 } else {
                     toolbar.style.display = "block";
                     clockarea.style.width = "60%";
+                    $('.toolbar-collapsible-btn').css("display", "block");
                 }
             }
         });
@@ -511,6 +514,19 @@
                 break;
         }
     }
+
+    function handleCollapsibleBtnPressed() {
+        this.classList.toggle('active');
+        var content = document.getElementById("content-tool");
+        if (content.style.display === "block") {
+            content.style.display = "none";
+            this.innerHTML = "<";
+        } else {
+            content.style.display = "block";
+            this.innerHTML = ">";
+        }
+    }
+
     // #endregion
 
     // #region SquareClock
