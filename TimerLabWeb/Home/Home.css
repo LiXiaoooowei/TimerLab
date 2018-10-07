@@ -50,3 +50,13 @@ select {
     padding: 1%;
     width: 40%;
 }
+
+h5 {
+    display: inline;
+}
+
+.snooze-op {
+    display: inline;
+    cursor: pointer;
+    text-decoration: underline;
+}

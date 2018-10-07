@@ -4,6 +4,7 @@
     var ClockType = Object.freeze({ "BAR_CLOCK": "bar", "SQUARE_CLOCK": "square", "DIGITAL_CLOCK": "digital" });
     var TickType = Object.freeze({ "NONE": "none", "TICK": "tick" });
     var TimeupType = Object.freeze({ "NONE": "none", "ALARM": "alarm" });
+    var SnoozeOptions = Object.freeze({ "30Sec": 30, "1Min": 60, "5Min": 300, "10Min": 600});
 
     var clockType = ClockType.SQUARE_CLOCK;
     var tickType = TickType.TICK;
@@ -103,13 +104,18 @@
             $('#clock-stop-btn').on('click', handleClockStopBtnPressed);
             $('#clock-pause-btn').on('click', handleClockPauseBtnPressed);
             $('#clock-reset-btn').on('click', handleClockResetBtnPressed);
-            $('#content-main').on('click', handleClockStatusChanged);
+            $('#canvas').on('click', handleClockStatusChanged);
 
             $("#toolbar-ticking-sound").on('change', handleTickSoundChange);
             $("#toolbar-timeup-sound").on('change', handleTimeupSoundChange);
 
             $("#checkbox-digital-bar-clock").on('change', handleClockCombiChange);
             $("#checkbox-digital-count-up").on('change', handleDigiClockCountUpChange);
+
+            $("#snooze-30s").on('click', handleSnoozeOptionClicked);
+            $("#snooze-1m").on('click', handleSnoozeOptionClicked);
+            $("#snooze-5m").on('click', handleSnoozeOptionClicked);
+            $("#snooze-10m").on('click', handleSnoozeOptionClicked);
 
             $('#toolbar-clocktype').val(clockType).trigger("change");
             $("#toolbar-HH").val(HH).trigger("change");
@@ -141,6 +147,8 @@
             if (isCountUp && clockType == ClockType.DIGITAL_CLOCK) {
                 $("#checkbox-digital-count-up").prop("checked", true).trigger('change');
             }
+
+            $('#snooze').css("display", "none");
         });
     };
     // #region EventHandlers
@@ -165,6 +173,7 @@
         }
     }
     function handleClockStartBtnPressed() {
+        $('#snooze').css("display", "block");
         if (!isPaused && !isTimerStarted) {
             startTime = new Date();
             isTimerStarted = true;
@@ -183,6 +192,7 @@
         }
     }
     function handleClockStopBtnPressed() {
+        $('#snooze').css("display", "none");
         isTimerStarted = false;
         isTimeUp = false;
         pausedTimeInSec = 0;
@@ -404,6 +414,7 @@
         loadTickSound();
         loadTimeupSound();
 
+        $('#snooze').css("display", "none");
         $("#toolbar-ticking-sound").val(tickType).trigger("change");
         $("#toolbar-timeup-sound").val(timeupType).trigger("change");
 
@@ -466,6 +477,39 @@
         isTimerStarted = false;
         // drawClock();
         handleClockStopBtnPressed();
+    }
+
+    function handleSnoozeOptionClicked() {
+        switch (parseInt(this.title)) {
+            case SnoozeOptions["30Sec"]:
+                $("#clock-noti").text("Additional 30 seconds added successfully!");
+                setTimeout(function () {
+                    $("#clock-noti").text("");
+                }, 2000);
+                updateHHMMSSBasedOnSnoozeOp(SnoozeOptions["30Sec"]);
+                break;
+            case SnoozeOptions["1Min"]:
+                $("#clock-noti").text("Additional 1 minute added successfully!");
+                setTimeout(function () {
+                    $("#clock-noti").text("");
+                }, 2000);
+                updateHHMMSSBasedOnSnoozeOp(SnoozeOptions["1Min"]);
+                break;
+            case SnoozeOptions["5Min"]:
+                $("#clock-noti").text("Additional 5 minutes added successfully!");
+                setTimeout(function () {
+                    $("#clock-noti").text("");
+                }, 2000);
+                updateHHMMSSBasedOnSnoozeOp(SnoozeOptions["5Min"]);
+                break;
+            case SnoozeOptions["10Min"]:
+                $("#clock-noti").text("Additional 10 minutes added successfully!");
+                setTimeout(function () {
+                    $("#clock-noti").text("");
+                }, 2000);
+                updateHHMMSSBasedOnSnoozeOp(SnoozeOptions["10Min"]);
+                break;
+        }
     }
     // #endregion
 
@@ -875,6 +919,15 @@
             seconds += parseInt(SS_reminder);
         }
         return seconds;
+    }
+
+    function updateHHMMSSBasedOnSnoozeOp(snoozeOpInSeconds) {
+        var ss = (SS + snoozeOpInSeconds) % 60;
+        var mm = (MM + Math.floor((SS + snoozeOpInSeconds) / 60)) % 60;
+        var hh = HH + Math.floor(((MM + Math.floor((SS + snoozeOpInSeconds) / 60))) / 60);
+        SS = ss;
+        MM = mm;
+        HH = hh;
     }
 
     function showNotification(header, content) {
