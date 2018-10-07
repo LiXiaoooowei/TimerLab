@@ -60,9 +60,9 @@
             clockType = loadSettings('clocktype') == null ? clockType : loadSettings('clocktype');
             tickType = loadSettings('tickType') == null ? tickType : loadSettings('tickType');
             timeupType = loadSettings('timeupType') == null ? timeupType : loadSettings('timeupType');
-            showCombi = loadSettings('showCombi') == null ? false : loadSettings('showCombi') == "true";
-            isCountUp = loadSettings('isCountUp') == null ? false : loadSettings('isCountUp') == "true";
-            console.log("value is " + showCombi + " " + isCountUp);
+            showCombi = loadSettings('showCombi') == null ? false : loadSettings('showCombi');
+            isCountUp = loadSettings('isCountUp') == null ? false : loadSettings('isCountUp');
+            console.log("value is " + loadSettings('showCombi') + " " + loadSettings('isCountUp'));
             loadTickSound();
             loadTimeupSound();
 
@@ -74,6 +74,8 @@
             ctx = canvas.getContext("2d");
 
             window.addEventListener('resize', handleWindowResize);
+
+         //   drawClock();
 
             $('#toolbar-clocktype').on('change', handleClockTypeChange);
             $('#toolbar-HH').on('change', handleToolbarHHChange);
@@ -93,21 +95,21 @@
             $("#checkbox-digital-bar-clock").on('change', handleClockCombiChange);
             $("#checkbox-digital-count-up").on('change', handleDigiClockCountUpChange);
 
+            $('#toolbar-clocktype').val(clockType).trigger("change");
             $("#toolbar-HH").val(HH).trigger("change");
             $("#toolbar-MM").val(MM).trigger("change");
             $("#toolbar-SS").val(SS).trigger("change");
             $('#toolbar-interval').val(interval).trigger("change");
-            $('#toolbar-clocktype').val(clockType).trigger("change");
             $("#toolbar-ticking-sound").val(tickType).trigger("change");
             $("#toolbar-timeup-sound").val(timeupType).trigger("change");
 
             if (showCombi) {
-                $("#checkbox-digital-bar-clock").trigger('click');
+                $("#checkbox-digital-bar-clock").prop("checked", true).trigger('change');
             }
 
             if (isCountUp && clockType == ClockType.DIGITAL_CLOCK) {
-                $("#checkbox-digital-count-up").trigger('click');
-            }
+                $("#checkbox-digital-count-up").prop("checked", true).trigger('change');
+           }
         });
     };
     // #region EventHandlers
@@ -262,7 +264,7 @@
 
     function handleClockTypeChange() {
         saveSettings('clocktype', this.value);
-        reset();
+      //  reset();
         switch (this.value) {
             case ClockType.BAR_CLOCK:
                 clockType = ClockType.BAR_CLOCK;
