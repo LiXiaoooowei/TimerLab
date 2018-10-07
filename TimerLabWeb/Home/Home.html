@@ -29,6 +29,7 @@
 <body>
     <div id="content-main">
         <div class="padding">
+            <div> <p5 style="color: red" id="clock-noti">Noti</p5></div>
             <div>
                 <canvas id="canvas" width="500" height="500"> </canvas>
             </div>
@@ -53,13 +54,14 @@
                 <select id="toolbar-HH"></select>
                 <select id="toolbar-MM"></select>
                 <select id="toolbar-SS"></select>
-
-                <p5 style="color: red"></p5>
+                </div>
+            <div>
+                <p5 style="color: red" id="message-reminder"></p5>
                 <br /><br/>
                 <label class="ms-font-m-plus">TimeUp Reminder (Optional): </label>
-                <select ></select>
-                <select ></select>
-                <select ></select>
+                <select id="toolbar-HH-reminder"></select>
+                <select id="toolbar-MM-reminder"></select>
+                <select id="toolbar-SS-reminder"></select>
             </div>
             <br />
             <div id="interval-div">

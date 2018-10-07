@@ -28,6 +28,7 @@
     var barPtrx, barPtry;
 
     var HH = 0, MM = 0, SS = 20;
+    var HH_reminder = "--", MM_reminder = "--", SS_reminder = "--";
     var interval = 5;
 
     var tick_audio = new Audio('../Resources/Audio/ticking.mp3');
@@ -43,26 +44,38 @@
             handleActiveFileViewChanged();
             handleActiveViewChanged();
 
+            $("#toolbar-HH-reminder").append($('<option>', { value: -1, text: "--" }));
+            $("#toolbar-MM-reminder").append($('<option>', { value: -1, text: "--" }));
+            $("#toolbar-SS-reminder").append($('<option>', { value: -1, text: "--" }));
+
             for (let i = 0; i < 24; i++) {
                 $("#toolbar-HH").append($('<option>', { value: i, text: i < 10 ? "0" + i.toString() : i.toString() }));
+                $("#toolbar-HH-reminder").append($('<option>', { value: i, text: i < 10 ? "0" + i.toString() : i.toString() }));
             }
             for (let i = 0; i < 60; i++) {
                 $("#toolbar-MM").append($('<option>', { value: i, text: i < 10 ? "0" + i.toString() : i.toString() }));
+                $("#toolbar-MM-reminder").append($('<option>', { value: i, text: i < 10 ? "0" + i.toString() : i.toString() }));
             }
             for (let i = 0; i < 60; i++) {
                 $("#toolbar-SS").append($('<option>', { value: i, text: i < 10 ? "0" + i.toString() : i.toString() }));
+                $("#toolbar-SS-reminder").append($('<option>', { value: i, text: i < 10 ? "0" + i.toString() : i.toString() }));
             }
 
             HH = loadSettings('HH') == null ? HH : loadSettings('HH');
             MM = loadSettings('MM') == null ? MM : loadSettings('MM');
             SS = loadSettings('SS') == null ? SS : loadSettings('SS');
+
+            HH_reminder = loadSettings('HH-reminder') == null ? HH_reminder : loadSettings('HH-reminder');
+            MM_reminder = loadSettings('MM-reminder') == null ? MM_reminder : loadSettings('MM-reminder');
+            SS_reminder = loadSettings('SS-reminder') == null ? SS_reminder : loadSettings('SS-reminder');
+
             interval = loadSettings('interval') == null ? interval : loadSettings('interval');
             clockType = loadSettings('clocktype') == null ? clockType : loadSettings('clocktype');
             tickType = loadSettings('tickType') == null ? tickType : loadSettings('tickType');
             timeupType = loadSettings('timeupType') == null ? timeupType : loadSettings('timeupType');
             showCombi = loadSettings('showCombi') == null ? false : loadSettings('showCombi');
             isCountUp = loadSettings('isCountUp') == null ? false : loadSettings('isCountUp');
-            console.log("value is " + loadSettings('showCombi') + " " + loadSettings('isCountUp'));
+            //    console.log("value is " + loadSettings('showCombi') + " " + loadSettings('isCountUp'));
             loadTickSound();
             loadTimeupSound();
 
@@ -75,12 +88,15 @@
 
             window.addEventListener('resize', handleWindowResize);
 
-         //   drawClock();
+            //   drawClock();
 
             $('#toolbar-clocktype').on('change', handleClockTypeChange);
             $('#toolbar-HH').on('change', handleToolbarHHChange);
             $('#toolbar-MM').on('change', handleToolbarMMChange);
             $('#toolbar-SS').on('change', handleToolbarSSChange);
+            $('#toolbar-HH-reminder').on('change', handleToolbarHHReminderChange);
+            $('#toolbar-MM-reminder').on('change', handleToolbarMMReminderChange);
+            $('#toolbar-SS-reminder').on('change', handleToolbarSSReminderChange);
             $('#toolbar-interval').on('change', handleIntervalInputChange);
 
             $('#clock-start-btn').on('click', handleClockStartBtnPressed);
@@ -99,9 +115,24 @@
             $("#toolbar-HH").val(HH).trigger("change");
             $("#toolbar-MM").val(MM).trigger("change");
             $("#toolbar-SS").val(SS).trigger("change");
+
+            $("#toolbar-HH-reminder").val(HH_reminder).trigger("change");
+            $("#toolbar-MM-reminder").val(MM_reminder).trigger("change");
+            $("#toolbar-SS-reminder").val(SS_reminder).trigger("change");
+
             $('#toolbar-interval').val(interval).trigger("change");
             $("#toolbar-ticking-sound").val(tickType).trigger("change");
             $("#toolbar-timeup-sound").val(timeupType).trigger("change");
+
+            if (HH_reminder != null) {
+                $("#toolbar-HH-reminder").val(HH_reminder).trigger("change");
+            }
+            if (MM_reminder != null) {
+                $("#toolbar-MM-reminder").val(MM_reminder).trigger("change");
+            }
+            if (SS_reminder != null) {
+                $("#toolbar-SS-reminder").val(SS_reminder).trigger("change");
+            }
 
             if (showCombi) {
                 $("#checkbox-digital-bar-clock").prop("checked", true).trigger('change');
@@ -109,7 +140,7 @@
 
             if (isCountUp && clockType == ClockType.DIGITAL_CLOCK) {
                 $("#checkbox-digital-count-up").prop("checked", true).trigger('change');
-           }
+            }
         });
     };
     // #region EventHandlers
@@ -264,7 +295,7 @@
 
     function handleClockTypeChange() {
         saveSettings('clocktype', this.value);
-      //  reset();
+        //  reset();
         switch (this.value) {
             case ClockType.BAR_CLOCK:
                 clockType = ClockType.BAR_CLOCK;
@@ -303,7 +334,6 @@
             showCombi = false;
         }
         saveSettings('showCombi', showCombi);
-        showNotification(loadSettings('showCombi'));
         drawClock();
     }
 
@@ -381,6 +411,62 @@
         saveSettings('timeupType', timeupType);
     }
 
+    function handleToolbarHHReminderChange() {
+        if (isTimerStarted) {
+            isTimerStarted = false;
+        }
+        if (!isReset) {
+            $("#message-reminder").text("hour changed successfully!");
+            setTimeout(function () {
+                $("#message-reminder").text("");
+            }, 2000);
+        } else {
+            $("#message-reminder").text("");
+        }
+        HH_reminder = this.value == -1 ? "--" : parseInt(this.value);
+        saveSettings('HH-reminder', HH_reminder);
+        isTimerStarted = false;
+        // drawClock();
+        handleClockStopBtnPressed();
+    }
+
+    function handleToolbarMMReminderChange() {
+        if (isTimerStarted) {
+            isTimerStarted = false;
+        }
+        if (!isReset) {
+            $("#message-reminder").text("Minute changed successfully!");
+            setTimeout(function () {
+                $("#message-reminder").text("");
+            }, 2000);
+        } else {
+            $("#message-reminder").text("");
+        }
+        MM_reminder = this.value == -1 ? "--" : parseInt(this.value);
+        saveSettings('MM-reminder', MM_reminder);
+        isTimerStarted = false;
+        // drawClock();
+        handleClockStopBtnPressed();
+    }
+
+    function handleToolbarSSReminderChange() {
+        if (isTimerStarted) {
+            isTimerStarted = false;
+        }
+        if (!isReset) {
+            $("#message-reminder").text("Second changed successfully!");
+            setTimeout(function () {
+                $("#message-reminder").text("");
+            }, 2000);
+        } else {
+            $("#message-reminder").text("");
+        }
+        SS_reminder = this.value == -1 ? "--" : parseInt(this.value);
+        saveSettings('SS-reminder', SS_reminder);
+        isTimerStarted = false;
+        // drawClock();
+        handleClockStopBtnPressed();
+    }
     // #endregion
 
     // #region SquareClock
@@ -438,7 +524,7 @@
         var startTimeInSec = startTime == null ? 0 : startTime.getHours() * 3600 + startTime.getMinutes() * 60 + startTime.getSeconds() + pausedDuration;
         var now = new Date();
         var currTimeInSec = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
-        console.log("difference is " + (currTimeInSec - startTimeInSec));
+        //  console.log("difference is " + (currTimeInSec - startTimeInSec));
         var radToRotate = (currTimeInSec - startTimeInSec) * 1.0 / totalDuration * 2 * Math.PI;
         if (currTimeInSec - startTimeInSec == totalDuration) {
             pausedDuration = 0;
@@ -454,6 +540,13 @@
             drawSqClockHand(ctx, 0, radius * 0.9, radius * 0.02); //reset
         } else {
             drawSqClockHand(ctx, radToRotate, radius * 0.9, radius * 0.02);
+        }
+        if ((HH_reminder != null || MM_reminder != null || SS_reminder != null)
+            && totalDuration - (currTimeInSec - startTimeInSec) == convertHHMMSSReminderToSeconds()) {
+            $("#clock-noti").text("Reminder");
+            setTimeout(function () {
+                $("#clock-noti").text("");
+            }, 2000);
         }
     }
 
@@ -508,18 +601,28 @@
             minLeft = Math.floor((timePassed % 3600) / 60);
             ssLeft = timePassed - hourLeft * 3600 - minLeft * 60;
         } else {
-            if (timeLeft == 0) {
-                if (timeup_audio != null) {
-                    timeup_audio.play();
-                }
-            } else if (timeLeft > 0) {
+            if (timeLeft > 0) {
                 hourLeft = Math.floor(timeLeft / 3600);
                 minLeft = Math.floor((timeLeft % 3600) / 60);
                 ssLeft = timeLeft - hourLeft * 3600 - minLeft * 60;
-            } else {
-                isTimeUp = true;
-                isTimerStarted = false;
             }
+        }
+        if (timeLeft == 0) {
+            if (timeup_audio != null) {
+                timeup_audio.play();
+            }
+        }
+        if (timeLeft < 0) {
+            isTimeUp = true;
+            isTimerStarted = false;
+        }
+        console.log("timeLeft = " + timeLeft.toString() + " Reminder  = " + convertHHMMSSReminderToSeconds().toString());
+        if ((HH_reminder != null || MM_reminder != null || SS_reminder != null)
+            && timeLeft == convertHHMMSSReminderToSeconds()) {
+            $("#clock-noti").text("Reminder");
+            setTimeout(function () {
+                $("#clock-noti").text("");
+            }, 2000);
         }
         var rltStr = formatHHMMSS(hourLeft, minLeft, ssLeft);
         return rltStr;
@@ -584,6 +687,13 @@
             } else {
                 var deltaw = (currTimeInSec - startTimeInSec) / totalDuration * rectw;
                 barPtrx += deltaw;
+            }
+            if ((HH_reminder != null || MM_reminder != null || SS_reminder != null)
+                && totalDuration - (currTimeInSec - startTimeInSec) == convertHHMMSSReminderToSeconds()) {
+                $("#clock-noti").text("Reminder");
+                setTimeout(function () {
+                    $("#clock-noti").text("");
+                }, 2000);
             }
         }
         if (isTimeUp) {
@@ -687,6 +797,9 @@
         HH = 0;
         MM = 0;
         SS = 20;
+        HH_reminder = "--";
+        MM_reminder = "--";
+        SS_reminder = "--";
         interval = 5;
         isTimerStarted = false;
         isTimeUp = false;
@@ -704,6 +817,12 @@
         saveSettings('HH', HH);
         saveSettings('MM', MM);
         saveSettings('SS', SS);
+        saveSettings('HH-reminder', "--");
+        saveSettings('MM-reminder', "--");
+        saveSettings('SS-reminder', "--");
+        $("#toolbar-HH-reminder").val(-1).trigger("change");
+        $("#toolbar-MM-reminder").val(-1).trigger("change");
+        $("#toolbar-SS-reminder").val(-1).trigger("change");
         saveSettings('interval', interval);
         saveSettings('showCombi', false);
         saveSettings('isCountUp', false);
@@ -741,6 +860,21 @@
 
     function updatePauseDuration() {
         pausedDuration += 1;
+    }
+
+    function convertHHMMSSReminderToSeconds() {
+        var seconds = 0;
+        console.log(HH_reminder + " " + MM_reminder + " " + SS_reminder);
+        if (HH_reminder != "--") {
+            seconds += parseInt(HH_reminder) * 3600;
+        }
+        if (MM_reminder != "--") {
+            seconds += parseInt(MM_reminder) * 60;
+        }
+        if (SS_reminder != "--") {
+            seconds += parseInt(SS_reminder);
+        }
+        return seconds;
     }
 
     function showNotification(header, content) {
