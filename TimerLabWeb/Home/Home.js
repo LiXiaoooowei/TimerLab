@@ -24,6 +24,7 @@
     var pausedDuration = 0;
     var isPaused = false;
     var showCombi = false;
+    var isCountUp = false;
     var barPtrx, barPtry;
 
     var HH = 0, MM = 0, SS = 20;
@@ -34,7 +35,7 @@
 
     // The initialize function must be run each time a new page is loaded
     Office.initialize = function (reason) {
-        $(document).ready(function () {           
+        $(document).ready(function () {
             var element = document.querySelector('.ms-MessageBanner');
             messageBanner = new fabric.MessageBanner(element);
             messageBanner.hideBanner();
@@ -59,7 +60,9 @@
             clockType = loadSettings('clocktype') == null ? clockType : loadSettings('clocktype');
             tickType = loadSettings('tickType') == null ? tickType : loadSettings('tickType');
             timeupType = loadSettings('timeupType') == null ? timeupType : loadSettings('timeupType');
-
+            showCombi = loadSettings('showCombi') == null ? false : loadSettings('showCombi') == "true";
+            isCountUp = loadSettings('isCountUp') == null ? false : loadSettings('isCountUp') == "true";
+            console.log("value is " + showCombi + " " + isCountUp);
             loadTickSound();
             loadTimeupSound();
 
@@ -69,7 +72,7 @@
             radius = loadSettings('radius') == null ? 0.9 * Math.min.apply(null, [canvasHeight, canvasWidth]) / 2 : loadSettings('radius');
             $('#canvas').css({ 'height': canvasHeight, 'width': canvasWidth });
             ctx = canvas.getContext("2d");
-            
+
             window.addEventListener('resize', handleWindowResize);
 
             $('#toolbar-clocktype').on('change', handleClockTypeChange);
@@ -88,6 +91,7 @@
             $("#toolbar-timeup-sound").on('change', handleTimeupSoundChange);
 
             $("#checkbox-digital-bar-clock").on('change', handleClockCombiChange);
+            $("#checkbox-digital-count-up").on('change', handleDigiClockCountUpChange);
 
             $("#toolbar-HH").val(HH).trigger("change");
             $("#toolbar-MM").val(MM).trigger("change");
@@ -96,14 +100,21 @@
             $('#toolbar-clocktype').val(clockType).trigger("change");
             $("#toolbar-ticking-sound").val(tickType).trigger("change");
             $("#toolbar-timeup-sound").val(timeupType).trigger("change");
-     
+
+            if (showCombi) {
+                $("#checkbox-digital-bar-clock").trigger('click');
+            }
+
+            if (isCountUp && clockType == ClockType.DIGITAL_CLOCK) {
+                $("#checkbox-digital-count-up").trigger('click');
+            }
         });
     };
     // #region EventHandlers
     function handleWindowResize() {
         $('body').css('height', window.innerHeight * 0.96);
         var size = Math.min.apply(null, [$('#content-main').height() * 0.96, $('#content-main').width() * 0.96]);
-        $('#canvas').css({ 'height': size, 'width': size});
+        $('#canvas').css({ 'height': size, 'width': size });
         canvasWidth = $('#canvas').width();
         canvasHeight = $('#canvas').height();
         radius = 0.9 * Math.min.apply(null, [canvasHeight, canvasWidth]) / 2;
@@ -136,7 +147,7 @@
             pausedDuration = pausedDuration == 0 ? 0 : pausedDuration + 1;
             clearInterval(pausedTimer);
             timer = setInterval(drawClock, 1000);
-        } 
+        }
     }
     function handleClockStopBtnPressed() {
         isTimerStarted = false;
@@ -191,7 +202,7 @@
         MM = parseInt(this.value);
         saveSettings('MM', MM);
         isTimerStarted = false;
-       // drawClock();
+        // drawClock();
         handleClockStopBtnPressed();
     }
     function handleToolbarSSChange() {
@@ -214,7 +225,7 @@
         SS = parseInt(this.value);
         saveSettings('SS', SS);
         isTimerStarted = false;
-       // drawClock();
+        // drawClock();
         handleClockStopBtnPressed();
     }
     function handleIntervalInputChange() {
@@ -245,10 +256,10 @@
         interval = parseInt(this.value);
         saveSettings('interval', interval);
         isTimerStarted = false;
-       // drawClock();
+        // drawClock();
         handleClockStopBtnPressed();
     }
-    
+
     function handleClockTypeChange() {
         saveSettings('clocktype', this.value);
         reset();
@@ -259,12 +270,16 @@
                 $("#checkbox-digital-bar-clock").css("display", "inline");
                 $("#checkbox-digital-bar-text").css("display", "inline");
                 $("#checkbox-digital-bar-text").text("Combine With Digital Clock");
+                $("#checkbox-digital-count-up").css("display", "none");
+                $("#checkbox-digital-count-up-text").css("display", "none");
                 break;
             case ClockType.SQUARE_CLOCK:
                 clockType = ClockType.SQUARE_CLOCK;
                 $("#interval-div").css("display", "block");
                 $("#checkbox-digital-bar-clock").css("display", "none");
                 $("#checkbox-digital-bar-text").css("display", "none");
+                $("#checkbox-digital-count-up").css("display", "none");
+                $("#checkbox-digital-count-up-text").css("display", "none");
                 break;
             case ClockType.DIGITAL_CLOCK:
                 clockType = ClockType.DIGITAL_CLOCK;
@@ -272,18 +287,31 @@
                 $("#checkbox-digital-bar-clock").css("display", "inline");
                 $("#checkbox-digital-bar-text").css("display", "inline");
                 $("#checkbox-digital-bar-text").text("Combine With Bar Clock");
+                $("#checkbox-digital-count-up").css("display", "inline");
+                $("#checkbox-digital-count-up-text").css("display", "inline");
                 break;
         }
         drawClock();
     }
 
     function handleClockCombiChange() {
-        showNotification(this.checked);
         if (this.checked) {
             showCombi = true;
         } else {
             showCombi = false;
         }
+        saveSettings('showCombi', showCombi);
+        showNotification(loadSettings('showCombi'));
+        drawClock();
+    }
+
+    function handleDigiClockCountUpChange() {
+        if (this.checked) {
+            isCountUp = true;
+        } else {
+            isCountUp = false;
+        }
+        saveSettings('isCountUp', isCountUp);
         drawClock();
     }
 
@@ -304,7 +332,7 @@
                     toolbar.style.display = "none";
                     $("#content-main").css('margin-left', '20 %');
                     var size = Math.min.apply(null, [$('#content-main').height() * 0.96, $('#content-main').width() * 0.96]);
-                    $('#canvas').css({ 'height': size, 'width': size});                   
+                    $('#canvas').css({ 'height': size, 'width': size });
                     canvasWidth = $('#canvas').width();
                     canvasHeight = $('#canvas').height();
                 } else {
@@ -448,12 +476,20 @@
         ctx.textAlign = "center";
         if (isTimeUp) {
             clearInterval(timer);
-            ctx.fillText(formatHHMMSS(0, 0, 0), canvasWidth/2, posY);
+            if (isCountUp) {
+                ctx.fillText(formatHHMMSS(HH, MM, SS), canvasWidth / 2, posY);
+            } else {
+                ctx.fillText(formatHHMMSS(0, 0, 0), canvasWidth / 2, posY);
+            }
         } else if (isTimerStarted) {
             ctx.fillText(calculateDigitalTime(), canvasWidth / 2, posY);
         } else if (!isTimerStarted) {
             clearInterval(timer);
-            ctx.fillText(formatHHMMSS(HH, MM, SS), canvasWidth / 2, posY);
+            if (isCountUp) {
+                ctx.fillText(formatHHMMSS(0, 0, 0), canvasWidth / 2, posY);
+            } else {
+                ctx.fillText(formatHHMMSS(HH, MM, SS), canvasWidth / 2, posY);
+            }
         }
     }
 
@@ -464,17 +500,24 @@
         var currTimeInSec = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
         var timeLeft = totalDuration - (currTimeInSec - startTimeInSec);
         var hourLeft = 0, minLeft = 0, ssLeft = 0;
-        if (timeLeft == 0) {
-            if (timeup_audio != null) {
-                timeup_audio.play();
-            }
-        } else if (timeLeft > 0) {
-            hourLeft = Math.floor(timeLeft / 3600);
-            minLeft = Math.floor((timeLeft % 3600) / 60);
-            ssLeft = timeLeft - hourLeft * 3600 - minLeft * 60;
+        if (isCountUp) {
+            var timePassed = currTimeInSec - startTimeInSec;
+            hourLeft = Math.floor(timePassed / 3600);
+            minLeft = Math.floor((timePassed % 3600) / 60);
+            ssLeft = timePassed - hourLeft * 3600 - minLeft * 60;
         } else {
-            isTimeUp = true;
-            isTimerStarted = false;
+            if (timeLeft == 0) {
+                if (timeup_audio != null) {
+                    timeup_audio.play();
+                }
+            } else if (timeLeft > 0) {
+                hourLeft = Math.floor(timeLeft / 3600);
+                minLeft = Math.floor((timeLeft % 3600) / 60);
+                ssLeft = timeLeft - hourLeft * 3600 - minLeft * 60;
+            } else {
+                isTimeUp = true;
+                isTimerStarted = false;
+            }
         }
         var rltStr = formatHHMMSS(hourLeft, minLeft, ssLeft);
         return rltStr;
@@ -512,7 +555,7 @@
         drawBarClockPointer(rectw, recth);
     }
 
-    function drawBarClockBody(rectw, recth, posY) {   
+    function drawBarClockBody(rectw, recth, posY) {
         barPtrx = canvasWidth / 2 - rectw / 2;
         barPtry = posY;
         ctx.beginPath();
@@ -638,21 +681,32 @@
     }
 
     function reset() {
-            isReset = true;
-            HH = 0;
-            MM = 0;
-            SS = 20;
+        isReset = true;
+        HH = 0;
+        MM = 0;
+        SS = 20;
         interval = 5;
         isTimerStarted = false;
         isTimeUp = false;
-            $("#toolbar-HH").val(HH).trigger("change");
-            $("#toolbar-MM").val(MM).trigger("change");
-            $("#toolbar-SS").val(SS).trigger("change");
-            $('#toolbar-interval').val(interval).trigger("change");
-            saveSettings('HH', HH);
-            saveSettings('MM', MM);
-            saveSettings('SS', SS);
+        if (showCombi) {
+            $("#checkbox-digital-bar-clock").trigger('click');
+        }
+
+        if (isCountUp && clockType == ClockType.DIGITAL_CLOCK) {
+            $("#checkbox-digital-count-up").trigger('click');
+        }
+        $("#toolbar-HH").val(HH).trigger("change");
+        $("#toolbar-MM").val(MM).trigger("change");
+        $("#toolbar-SS").val(SS).trigger("change");
+        $('#toolbar-interval').val(interval).trigger("change");
+        saveSettings('HH', HH);
+        saveSettings('MM', MM);
+        saveSettings('SS', SS);
         saveSettings('interval', interval);
+        saveSettings('showCombi', false);
+        saveSettings('isCountUp', false);
+        showCombi = false;
+        isCountUp = false;
         isReset = false;
         pausedDuration = 0;
         pausedTimeInSec = 0;
