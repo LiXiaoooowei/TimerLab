@@ -23,6 +23,7 @@
     var pausedTimeInSec = 0;
     var pausedDuration = 0;
     var isPaused = false;
+    var showCombi = false;
     var barPtrx, barPtry;
 
     var HH = 0, MM = 0, SS = 20;
@@ -69,17 +70,7 @@
             $('#canvas').css({ 'height': canvasHeight, 'width': canvasWidth });
             ctx = canvas.getContext("2d");
             
-            drawClock();
-            
             window.addEventListener('resize', handleWindowResize);
-   
-            $("#toolbar-HH").val(HH).trigger("change");
-            $("#toolbar-MM").val(MM).trigger("change");
-            $("#toolbar-SS").val(SS).trigger("change");
-            $('#toolbar-interval').val(interval).trigger("change");
-            $('#toolbar-clocktype').val(clockType).trigger("change");
-            $("#toolbar-ticking-sound").val(tickType).trigger("change");
-            $("#toolbar-timeup-sound").val(timeupType).trigger("change");
 
             $('#toolbar-clocktype').on('change', handleClockTypeChange);
             $('#toolbar-HH').on('change', handleToolbarHHChange);
@@ -95,6 +86,16 @@
 
             $("#toolbar-ticking-sound").on('change', handleTickSoundChange);
             $("#toolbar-timeup-sound").on('change', handleTimeupSoundChange);
+
+            $("#checkbox-digital-bar-clock").on('change', handleClockCombiChange);
+
+            $("#toolbar-HH").val(HH).trigger("change");
+            $("#toolbar-MM").val(MM).trigger("change");
+            $("#toolbar-SS").val(SS).trigger("change");
+            $('#toolbar-interval').val(interval).trigger("change");
+            $('#toolbar-clocktype').val(clockType).trigger("change");
+            $("#toolbar-ticking-sound").val(tickType).trigger("change");
+            $("#toolbar-timeup-sound").val(timeupType).trigger("change");
      
         });
     };
@@ -255,15 +256,33 @@
             case ClockType.BAR_CLOCK:
                 clockType = ClockType.BAR_CLOCK;
                 $("#interval-div").css("display", "block");
+                $("#checkbox-digital-bar-clock").css("display", "inline");
+                $("#checkbox-digital-bar-text").css("display", "inline");
+                $("#checkbox-digital-bar-text").text("Combine With Digital Clock");
                 break;
             case ClockType.SQUARE_CLOCK:
                 clockType = ClockType.SQUARE_CLOCK;
                 $("#interval-div").css("display", "block");
+                $("#checkbox-digital-bar-clock").css("display", "none");
+                $("#checkbox-digital-bar-text").css("display", "none");
                 break;
             case ClockType.DIGITAL_CLOCK:
                 clockType = ClockType.DIGITAL_CLOCK;
                 $("#interval-div").css("display", "none");
+                $("#checkbox-digital-bar-clock").css("display", "inline");
+                $("#checkbox-digital-bar-text").css("display", "inline");
+                $("#checkbox-digital-bar-text").text("Combine With Bar Clock");
                 break;
+        }
+        drawClock();
+    }
+
+    function handleClockCombiChange() {
+        showNotification(this.checked);
+        if (this.checked) {
+            showCombi = true;
+        } else {
+            showCombi = false;
         }
         drawClock();
     }
@@ -423,18 +442,18 @@
 
     // #region DigitalClock
 
-    function drawDigitalClock() {
+    function drawDigitalClock(posY) {
         ctx.font = "80pt calibri";
         ctx.fillStyle = "black";
         ctx.textAlign = "center";
         if (isTimeUp) {
             clearInterval(timer);
-            ctx.fillText(formatHHMMSS(0, 0, 0), canvasWidth/2, canvasHeight / 2);
+            ctx.fillText(formatHHMMSS(0, 0, 0), canvasWidth/2, posY);
         } else if (isTimerStarted) {
-            ctx.fillText(calculateDigitalTime(), canvasWidth / 2, canvasHeight / 2);
+            ctx.fillText(calculateDigitalTime(), canvasWidth / 2, posY);
         } else if (!isTimerStarted) {
             clearInterval(timer);
-            ctx.fillText(formatHHMMSS(HH, MM, SS), canvasWidth/2, canvasHeight / 2);
+            ctx.fillText(formatHHMMSS(HH, MM, SS), canvasWidth / 2, posY);
         }
     }
 
@@ -485,19 +504,19 @@
 
     // #region BarClock
 
-    function drawBarClock() {
+    function drawBarClock(posY) {
         var rectw = canvasWidth * 0.8;
         var recth = canvasHeight / 5;
-        drawBarClockBody(rectw, recth);
+        drawBarClockBody(rectw, recth, posY);
         drawBarClockNumber(rectw, recth);
         drawBarClockPointer(rectw, recth);
     }
 
-    function drawBarClockBody(rectw, recth) {   
+    function drawBarClockBody(rectw, recth, posY) {   
         barPtrx = canvasWidth / 2 - rectw / 2;
-        barPtry = canvasHeight / 2 - recth / 2;
+        barPtry = posY;
         ctx.beginPath();
-        ctx.rect(canvasWidth / 2 - rectw / 2, canvasHeight / 2 - recth / 2, rectw, recth);
+        ctx.rect(canvasWidth / 2 - rectw / 2, posY, rectw, recth);
         ctx.fillStyle = "#104B10";
         ctx.fill();
     }
@@ -562,6 +581,14 @@
 
     // #endregion
 
+
+    // #region DigiBarClock
+    function drawDigiBarClock(posY1, posY2) {
+        drawDigitalClock(posY1);
+        drawBarClock(posY2);
+    }
+    // #endregion
+
     // #region OtherFunctions
 
     function drawClock() {
@@ -573,10 +600,18 @@
         ctx.setTransform(1, 0, 0, 1, 0, 0);
         switch (clockType) {
             case ClockType.BAR_CLOCK:
-                drawBarClock();
+                if (showCombi) {
+                    drawDigiBarClock(canvasHeight / 4, canvasHeight / 2);
+                } else {
+                    drawBarClock(3 * canvasHeight / 10);
+                }
                 break;
             case ClockType.DIGITAL_CLOCK:
-                drawDigitalClock();
+                if (showCombi) {
+                    drawDigiBarClock(canvasHeight / 4, canvasHeight / 2);
+                } else {
+                    drawDigitalClock(canvasHeight / 2);
+                }
                 break;
             case ClockType.SQUARE_CLOCK:
                 var size = Math.min.apply(null, [canvasHeight, canvasWidth]) / 2;
