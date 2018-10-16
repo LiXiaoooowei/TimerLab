@@ -902,7 +902,7 @@
                 tick_audio = null;
                 break;
             case TickType.TICK:
-                tick_audio = new Audio('../Resources/Audio/ticking.mp3');
+                tick_audio = new Audio('https://lixiaoooowei.github.io/TimerLab/Resources/Audio/ticking.mp3');
                 break;
         }
     }
@@ -913,7 +913,7 @@
                 timeup_audio = null;
                 break;
             case TimeupType.ALARM:
-                timeup_audio = new Audio('../Resources/Audio/alarm.mp3');
+                timeup_audio = new Audio('https://lixiaoooowei.github.io/TimerLab/Resources/Audio/alarm.mp3');
                 break;
         }
     }
