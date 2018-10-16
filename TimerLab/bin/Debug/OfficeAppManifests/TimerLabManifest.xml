@@ -13,13 +13,13 @@
 
   <!--Version. Updates from the store only get triggered if there is a version change. -->
   <Version>1.0.0.0</Version>
-  <ProviderName>[Provider name]</ProviderName>
+  <ProviderName>Xiaov</ProviderName>
   <DefaultLocale>en-US</DefaultLocale>
   <!-- The display name of your add-in. Used on the store and various places of the Office UI such as the add-ins dialog. -->
   <DisplayName DefaultValue="TimerLab" />
   <Description DefaultValue="TimerLab"/>
   <!-- Icon for your add-in. Used on installation screens and the add-ins dialog. -->
-  <IconUrl DefaultValue="https://lixiaoooowei.github.io/TimerLab/Resources/Image/Button32x32.png" />
+  <IconUrl DefaultValue="https://lixiaoooowei.github.io/TimerLab/Resources/Image/timer.png" />
 
   <SupportUrl DefaultValue="https://lixiaoooowei.github.io/TimerLab/index.html" />
   <!-- Domains that will be allowed when navigating. For example, if you use ShowTaskpane and then have an href link, navigation will only be allowed if the domain is on this list. -->

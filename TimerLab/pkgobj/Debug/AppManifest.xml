@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <App xmlns="http://schemas.microsoft.com/sharepoint/2012/app/manifest"
      Name="TimerLab"
-     ProductID="{49871566-a180-449a-9a0f-857b85ca36ef}"
+     ProductID="{3140508e-156c-46a1-ab89-a0f2c3e0aa12}"
      Version="1.0.0.0"
      SharePointMinVersion="15.0.0.0"
 >
