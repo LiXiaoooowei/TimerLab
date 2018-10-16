@@ -37,122 +37,121 @@
 
     // The initialize function must be run each time a new page is loaded
     Office.initialize = function (reason) {
-        handleActiveFileViewChanged();
-        handleActiveViewChanged();
+        $(document).ready(function () {
+            var element = document.querySelector('.ms-MessageBanner');
+            messageBanner = new fabric.MessageBanner(element);
+            messageBanner.hideBanner();
 
-        HH = loadSettings('HH') == null ? HH : loadSettings('HH');
-        MM = loadSettings('MM') == null ? MM : loadSettings('MM');
-        SS = loadSettings('SS') == null ? SS : loadSettings('SS');
+            handleActiveFileViewChanged();
+            handleActiveViewChanged();
 
-        HH_reminder = loadSettings('HH-reminder') == null ? HH_reminder : loadSettings('HH-reminder');
-        MM_reminder = loadSettings('MM-reminder') == null ? MM_reminder : loadSettings('MM-reminder');
-        SS_reminder = loadSettings('SS-reminder') == null ? SS_reminder : loadSettings('SS-reminder');
+            $("#toolbar-HH-reminder").append($('<option>', { value: -1, text: "--" }));
+            $("#toolbar-MM-reminder").append($('<option>', { value: -1, text: "--" }));
+            $("#toolbar-SS-reminder").append($('<option>', { value: -1, text: "--" }));
 
-        interval = loadSettings('interval') == null ? interval : loadSettings('interval');
-        clockType = loadSettings('clocktype') == null ? clockType : loadSettings('clocktype');
-        tickType = loadSettings('tickType') == null ? tickType : loadSettings('tickType');
-        timeupType = loadSettings('timeupType') == null ? timeupType : loadSettings('timeupType');
-        showCombi = loadSettings('showCombi') == null ? false : loadSettings('showCombi');
-        isCountUp = loadSettings('isCountUp') == null ? false : loadSettings('isCountUp');
+            for (let i = 0; i < 24; i++) {
+                $("#toolbar-HH").append($('<option>', { value: i, text: i < 10 ? "0" + i.toString() : i.toString() }));
+                $("#toolbar-HH-reminder").append($('<option>', { value: i, text: i < 10 ? "0" + i.toString() : i.toString() }));
+            }
+            for (let i = 0; i < 60; i++) {
+                $("#toolbar-MM").append($('<option>', { value: i, text: i < 10 ? "0" + i.toString() : i.toString() }));
+                $("#toolbar-MM-reminder").append($('<option>', { value: i, text: i < 10 ? "0" + i.toString() : i.toString() }));
+            }
+            for (let i = 0; i < 60; i++) {
+                $("#toolbar-SS").append($('<option>', { value: i, text: i < 10 ? "0" + i.toString() : i.toString() }));
+                $("#toolbar-SS-reminder").append($('<option>', { value: i, text: i < 10 ? "0" + i.toString() : i.toString() }));
+            }
 
-        canvasHeight = loadSettings('canvash') == null ? canvas.height : loadSettings('canvash');
-        canvasWidth = loadSettings('canvasw') == null ? canvas.width : loadSettings('canvasw');
-        radius = loadSettings('radius') == null ? 0.9 * Math.min.apply(null, [canvasHeight, canvasWidth]) / 2 : loadSettings('radius');
-    };
-    $(document).ready(function () {
-        var element = document.querySelector('.ms-MessageBanner');
-        messageBanner = new fabric.MessageBanner(element);
-        messageBanner.hideBanner();
+            HH = loadSettings('HH') == null ? HH : loadSettings('HH');
+            MM = loadSettings('MM') == null ? MM : loadSettings('MM');
+            SS = loadSettings('SS') == null ? SS : loadSettings('SS');
 
-        $("#toolbar-HH-reminder").append($('<option>', { value: -1, text: "--" }));
-        $("#toolbar-MM-reminder").append($('<option>', { value: -1, text: "--" }));
-        $("#toolbar-SS-reminder").append($('<option>', { value: -1, text: "--" }));
+            HH_reminder = loadSettings('HH-reminder') == null ? HH_reminder : loadSettings('HH-reminder');
+            MM_reminder = loadSettings('MM-reminder') == null ? MM_reminder : loadSettings('MM-reminder');
+            SS_reminder = loadSettings('SS-reminder') == null ? SS_reminder : loadSettings('SS-reminder');
 
-        for (let i = 0; i < 24; i++) {
-            $("#toolbar-HH").append($('<option>', { value: i, text: i < 10 ? "0" + i.toString() : i.toString() }));
-            $("#toolbar-HH-reminder").append($('<option>', { value: i, text: i < 10 ? "0" + i.toString() : i.toString() }));
-        }
-        for (let i = 0; i < 60; i++) {
-            $("#toolbar-MM").append($('<option>', { value: i, text: i < 10 ? "0" + i.toString() : i.toString() }));
-            $("#toolbar-MM-reminder").append($('<option>', { value: i, text: i < 10 ? "0" + i.toString() : i.toString() }));
-        }
-        for (let i = 0; i < 60; i++) {
-            $("#toolbar-SS").append($('<option>', { value: i, text: i < 10 ? "0" + i.toString() : i.toString() }));
-            $("#toolbar-SS-reminder").append($('<option>', { value: i, text: i < 10 ? "0" + i.toString() : i.toString() }));
-        }
+            interval = loadSettings('interval') == null ? interval : loadSettings('interval');
+            clockType = loadSettings('clocktype') == null ? clockType : loadSettings('clocktype');
+            tickType = loadSettings('tickType') == null ? tickType : loadSettings('tickType');
+            timeupType = loadSettings('timeupType') == null ? timeupType : loadSettings('timeupType');
+            showCombi = loadSettings('showCombi') == null ? false : loadSettings('showCombi');
+            isCountUp = loadSettings('isCountUp') == null ? false : loadSettings('isCountUp');
+            //    console.log("value is " + loadSettings('showCombi') + " " + loadSettings('isCountUp'));
+            loadTickSound();
+            loadTimeupSound();
 
-        //    console.log("value is " + loadSettings('showCombi') + " " + loadSettings('isCountUp'));
-        loadTickSound();
-        loadTimeupSound();
+            var canvas = document.getElementById("canvas");
+            canvasHeight = loadSettings('canvash') == null ? canvas.height : loadSettings('canvash');
+            canvasWidth = loadSettings('canvasw') == null ? canvas.width : loadSettings('canvasw');
+            radius = loadSettings('radius') == null ? 0.9 * Math.min.apply(null, [canvasHeight, canvasWidth]) / 2 : loadSettings('radius');
+            $('#canvas').css({ 'height': canvasHeight, 'width': canvasWidth });
+            ctx = canvas.getContext("2d");
 
-        var canvas = document.getElementById("canvas");
-        $('#canvas').css({ 'height': canvasHeight, 'width': canvasWidth });
-        ctx = canvas.getContext("2d");
+            window.addEventListener('resize', handleWindowResize);
 
-        window.addEventListener('resize', handleWindowResize);
+            //   drawClock();
 
-        //   drawClock();
+            $('#toolbar-clocktype').on('change', handleClockTypeChange);
+            $('#toolbar-HH').on('change', handleToolbarHHChange);
+            $('#toolbar-MM').on('change', handleToolbarMMChange);
+            $('#toolbar-SS').on('change', handleToolbarSSChange);
+            $('#toolbar-HH-reminder').on('change', handleToolbarHHReminderChange);
+            $('#toolbar-MM-reminder').on('change', handleToolbarMMReminderChange);
+            $('#toolbar-SS-reminder').on('change', handleToolbarSSReminderChange);
+            $('#toolbar-interval').on('change', handleIntervalInputChange);
 
-        $('#toolbar-clocktype').on('change', handleClockTypeChange);
-        $('#toolbar-HH').on('change', handleToolbarHHChange);
-        $('#toolbar-MM').on('change', handleToolbarMMChange);
-        $('#toolbar-SS').on('change', handleToolbarSSChange);
-        $('#toolbar-HH-reminder').on('change', handleToolbarHHReminderChange);
-        $('#toolbar-MM-reminder').on('change', handleToolbarMMReminderChange);
-        $('#toolbar-SS-reminder').on('change', handleToolbarSSReminderChange);
-        $('#toolbar-interval').on('change', handleIntervalInputChange);
+            $('#clock-start-btn').on('click', handleClockStartBtnPressed);
+            $('#clock-stop-btn').on('click', handleClockStopBtnPressed);
+            $('#clock-pause-btn').on('click', handleClockPauseBtnPressed);
+            $('#clock-reset-btn').on('click', handleClockResetBtnPressed);
+            $('.toolbar-collapsible-btn ').on('click', handleCollapsibleBtnPressed);
+            $('#canvas').on('click', handleClockStatusChanged);
 
-        $('#clock-start-btn').on('click', handleClockStartBtnPressed);
-        $('#clock-stop-btn').on('click', handleClockStopBtnPressed);
-        $('#clock-pause-btn').on('click', handleClockPauseBtnPressed);
-        $('#clock-reset-btn').on('click', handleClockResetBtnPressed);
-        $('.toolbar-collapsible-btn ').on('click', handleCollapsibleBtnPressed);
-        $('#canvas').on('click', handleClockStatusChanged);
+            $("#toolbar-ticking-sound").on('change', handleTickSoundChange);
+            $("#toolbar-timeup-sound").on('change', handleTimeupSoundChange);
 
-        $("#toolbar-ticking-sound").on('change', handleTickSoundChange);
-        $("#toolbar-timeup-sound").on('change', handleTimeupSoundChange);
+            $("#checkbox-digital-bar-clock").on('change', handleClockCombiChange);
+            $("#checkbox-digital-count-up").on('change', handleDigiClockCountUpChange);
 
-        $("#checkbox-digital-bar-clock").on('change', handleClockCombiChange);
-        $("#checkbox-digital-count-up").on('change', handleDigiClockCountUpChange);
+            $("#snooze-30s").on('click', handleSnoozeOptionClicked);
+            $("#snooze-1m").on('click', handleSnoozeOptionClicked);
+            $("#snooze-5m").on('click', handleSnoozeOptionClicked);
+            $("#snooze-10m").on('click', handleSnoozeOptionClicked);
 
-        $("#snooze-30s").on('click', handleSnoozeOptionClicked);
-        $("#snooze-1m").on('click', handleSnoozeOptionClicked);
-        $("#snooze-5m").on('click', handleSnoozeOptionClicked);
-        $("#snooze-10m").on('click', handleSnoozeOptionClicked);
+            $('#toolbar-clocktype').val(clockType).trigger("change");
+            $("#toolbar-HH").val(HH).trigger("change");
+            $("#toolbar-MM").val(MM).trigger("change");
+            $("#toolbar-SS").val(SS).trigger("change");
 
-        $('#toolbar-clocktype').val(clockType).trigger("change");
-        $("#toolbar-HH").val(HH).trigger("change");
-        $("#toolbar-MM").val(MM).trigger("change");
-        $("#toolbar-SS").val(SS).trigger("change");
-
-        $("#toolbar-HH-reminder").val(HH_reminder).trigger("change");
-        $("#toolbar-MM-reminder").val(MM_reminder).trigger("change");
-        $("#toolbar-SS-reminder").val(SS_reminder).trigger("change");
-
-        $('#toolbar-interval').val(interval).trigger("change");
-        $("#toolbar-ticking-sound").val(tickType).trigger("change");
-        $("#toolbar-timeup-sound").val(timeupType).trigger("change");
-
-        if (HH_reminder != null) {
             $("#toolbar-HH-reminder").val(HH_reminder).trigger("change");
-        }
-        if (MM_reminder != null) {
             $("#toolbar-MM-reminder").val(MM_reminder).trigger("change");
-        }
-        if (SS_reminder != null) {
             $("#toolbar-SS-reminder").val(SS_reminder).trigger("change");
-        }
 
-        if (showCombi) {
-            $("#checkbox-digital-bar-clock").prop("checked", true).trigger('change');
-        }
+            $('#toolbar-interval').val(interval).trigger("change");
+            $("#toolbar-ticking-sound").val(tickType).trigger("change");
+            $("#toolbar-timeup-sound").val(timeupType).trigger("change");
 
-        if (isCountUp && clockType == ClockType.DIGITAL_CLOCK) {
-            $("#checkbox-digital-count-up").prop("checked", true).trigger('change');
-        }
+            if (HH_reminder != null) {
+                $("#toolbar-HH-reminder").val(HH_reminder).trigger("change");
+            }
+            if (MM_reminder != null) {
+                $("#toolbar-MM-reminder").val(MM_reminder).trigger("change");
+            }
+            if (SS_reminder != null) {
+                $("#toolbar-SS-reminder").val(SS_reminder).trigger("change");
+            }
 
-        $('#snooze').css("display", "none");
-    });
+            if (showCombi) {
+                $("#checkbox-digital-bar-clock").prop("checked", true).trigger('change');
+            }
+
+            if (isCountUp && clockType == ClockType.DIGITAL_CLOCK) {
+                $("#checkbox-digital-count-up").prop("checked", true).trigger('change');
+            }
+
+            $('#snooze').css("display", "none");
+        });
+    };
     // #region EventHandlers
     function handleWindowResize() {
         $('body').css('height', window.innerHeight);
@@ -796,6 +795,7 @@
     }
 
     // #endregion
+
 
     // #region DigiBarClock
     function drawDigiBarClock(posY1, posY2) {
