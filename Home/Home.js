@@ -32,8 +32,8 @@
     var HH_reminder = "--", MM_reminder = "--", SS_reminder = "--";
     var interval = 5;
 
-    var tick_audio = new Audio('../Resources/Audio/ticking.mp3');
-    var timeup_audio = new Audio('../Resources/Audio/alarm.mp3');
+    var tick_audio = new Audio('https://lixiaoooowei.github.io/TimerLab/Resources/Audio/ticking.mp3');
+    var timeup_audio = new Audio('https://lixiaoooowei.github.io/TimerLab/Resources/Audio/alarm.mp3');
 
     // The initialize function must be run each time a new page is loaded
     Office.initialize = function (reason) {
