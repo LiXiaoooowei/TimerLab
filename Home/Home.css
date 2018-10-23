@@ -6,6 +6,7 @@ body {
     justify-content: space-around;
     height: 100vh;
     margin: 0px;
+    background-color: white;
 }
 
 #content-main {
