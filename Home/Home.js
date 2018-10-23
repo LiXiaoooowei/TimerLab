@@ -81,8 +81,9 @@
             loadTimeupSound();
 
             var canvas = document.getElementById("canvas");
-            canvasHeight = loadSettings('canvash') == null ? canvas.height : loadSettings('canvash');
-            canvasWidth = loadSettings('canvasw') == null ? canvas.width : loadSettings('canvasw');
+            var size = Math.min.apply(null, [$('#content-main').height() * 0.9, $('#content-main').width() * 0.9]);
+            canvasHeight = loadSettings('canvash') == null ? size : loadSettings('canvash');
+            canvasWidth = loadSettings('canvasw') == null ? size : loadSettings('canvasw');
             radius = loadSettings('radius') == null ? 0.9 * Math.min.apply(null, [canvasHeight, canvasWidth]) / 2 : loadSettings('radius');
             $('#canvas').css({ 'height': canvasHeight, 'width': canvasWidth });
             ctx = canvas.getContext("2d");
