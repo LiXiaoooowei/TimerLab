@@ -6,3 +6,5 @@ TimerLab/obj/Release/
 .vs/
 TimerLab/obj/
 TimerLabWeb/bin/
+TimerLab/bin/
+TimerLab/pkgobj/
