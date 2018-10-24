@@ -3,3 +3,6 @@ TimerLabWeb/obj/Release/
 TimerLabWeb/obj/Debug/
 TimerLab/obj/Release/
 .idea/
+.vs/
+TimerLab/obj/
+TimerLabWeb/bin/
