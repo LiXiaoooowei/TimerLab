@@ -1,2 +1,0 @@
-bin\Debug\OfficeAppManifests\TimerLabManifest.xml
-C:\Users\xiaov\TimerLab\TimerLab\bin\Debug\TimerLab.debugapp

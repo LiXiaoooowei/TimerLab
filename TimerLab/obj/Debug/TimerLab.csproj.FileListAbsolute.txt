@@ -1,2 +1,0 @@
-C:\Users\xiaov\TimerLab\TimerLab\obj\Debug\TimerLab.csprojAssemblyReference.cache
-C:\Users\xiaov\TimerLab\TimerLab\obj\Debug\TimerLab.csproj.CoreCompileInputs.cache
