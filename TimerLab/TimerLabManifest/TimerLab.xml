@@ -2,8 +2,7 @@
 <!--Created:ce44715c-8c4e-446b-879c-ea9ebe0f09c8-->
 <OfficeApp 
           xmlns="http://schemas.microsoft.com/office/appforoffice/1.1" 
-          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-          xmlns:bt="http://schemas.microsoft.com/office/officeappbasictypes/1.0" 
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"         
           xsi:type="ContentApp">
 
   <!-- Begin Basic Settings: Add-in metadata, used for all versions of Office unless override provided. -->
@@ -16,17 +15,17 @@
   <ProviderName>Xiaov</ProviderName>
   <DefaultLocale>en-US</DefaultLocale>
   <!-- The display name of your add-in. Used on the store and various places of the Office UI such as the add-ins dialog. -->
-  <DisplayName DefaultValue="TimerLab" />
-  <Description DefaultValue="TimerLab"/>
+  <DisplayName DefaultValue="EasyTimer" />
+  <Description DefaultValue="A timer for more efficient product management in PowerPoint."/>
   <!-- Icon for your add-in. Used on installation screens and the add-ins dialog. -->
   <IconUrl DefaultValue="https://lixiaoooowei.github.io/TimerLab/Resources/Image/timer.png" />
 
   <SupportUrl DefaultValue="https://lixiaoooowei.github.io/TimerLab/index.html" />
   <!-- Domains that will be allowed when navigating. For example, if you use ShowTaskpane and then have an href link, navigation will only be allowed if the domain is on this list. -->
   <AppDomains>
-    <AppDomain>AppDomain1</AppDomain>
-    <AppDomain>AppDomain2</AppDomain>
-    <AppDomain>AppDomain3</AppDomain>
+    <AppDomain>officeapps.live.com</AppDomain>
+    <AppDomain>lixiaoooowei.github.io</AppDomain>
+    <!--AppDomain>AppDomain3</AppDomain-->
   </AppDomains>
   <!--End Basic Settings. -->
   
@@ -39,6 +38,6 @@
     <RequestedHeight>600</RequestedHeight>
   </DefaultSettings>
 
-  <Permissions>ReadWriteDocument</Permissions>
+  <Permissions>Restricted</Permissions>
 
 </OfficeApp>
